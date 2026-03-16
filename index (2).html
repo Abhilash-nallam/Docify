@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docify — Document Studio</title>
+<!-- Inline SVG favicon — shows Docify logo in browser tab, no external file needed -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%233b5bfc'/%3E%3Cstop offset='100%25' stop-color='%236477fd'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='8' y='6' width='30' height='38' rx='5' fill='white' opacity='.2'/%3E%3Crect x='12' y='10' width='30' height='38' rx='5' fill='white' opacity='.4'/%3E%3Crect x='16' y='14' width='32' height='40' rx='5' fill='white'/%3E%3Cline x1='24' y1='26' x2='40' y2='26' stroke='%233b5bfc' stroke-width='3.5' stroke-linecap='round'/%3E%3Cline x1='24' y1='33' x2='40' y2='33' stroke='%233b5bfc' stroke-width='3.5' stroke-linecap='round'/%3E%3Cline x1='24' y1='40' x2='34' y2='40' stroke='%233b5bfc' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="shortcut icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%233b5bfc'/%3E%3Cstop offset='100%25' stop-color='%236477fd'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='8' y='6' width='30' height='38' rx='5' fill='white' opacity='.2'/%3E%3Crect x='12' y='10' width='30' height='38' rx='5' fill='white' opacity='.4'/%3E%3Crect x='16' y='14' width='32' height='40' rx='5' fill='white'/%3E%3Cline x1='24' y1='26' x2='40' y2='26' stroke='%233b5bfc' stroke-width='3.5' stroke-linecap='round'/%3E%3Cline x1='24' y1='33' x2='40' y2='33' stroke='%233b5bfc' stroke-width='3.5' stroke-linecap='round'/%3E%3Cline x1='24' y1='40' x2='34' y2='40' stroke='%233b5bfc' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --bg: #f5f7ff;
+  --bg2: #ffffff;
+  --bg3: #eef0f8;
+  --bg4: #e4e7f5;
+  --border: rgba(99,115,255,0.12);
+  --border2: rgba(99,115,255,0.22);
+  --text: #1a1d3a;
+  --text2: #5a5f8a;
+  --text3: #9ca3c9;
+  --blue: #3b5bfc;
+  --blue2: #6477fd;
+  --blue3: #e8ecff;
+  --green: #0e9f6e;
+  --amber: #d97706;
+  --red: #e53e3e;
+  --pink: #d946ef;
+  --teal: #0891b2;
+  --shadow: 0 2px 16px rgba(59,91,252,0.09);
+  --shadow2: 0 4px 32px rgba(59,91,252,0.14);
+  --radius: 16px;
+  --radius2: 10px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky; top:0; z-index:200;
+  background: rgba(245,247,255,0.92);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px;
+  box-shadow: 0 1px 0 var(--border);
+}
+
+/* LOGO */
+.logo-wrap { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.logo-svg-box {
+  width:40px; height:40px;
+  border-radius:11px;
+  background: linear-gradient(135deg,#3b5bfc,#6477fd);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow: 0 4px 14px rgba(59,91,252,0.35);
+  flex-shrink:0;
+}
+.logo-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 1.45rem;
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+.logo-name span { color: var(--blue); }
+
+nav { display:flex; gap:2px; }
+nav a {
+  font-size: 0.83rem; font-weight:600;
+  color: var(--text2);
+  text-decoration:none;
+  padding: 7px 14px;
+  border-radius:9px;
+  cursor:pointer;
+  transition: all 0.15s;
+}
+nav a:hover { color: var(--blue); background: var(--blue3); }
+
+.header-badge {
+  font-size:0.72rem; font-weight:700;
+  background: var(--blue3);
+  color: var(--blue);
+  border: 1px solid rgba(59,91,252,0.2);
+  padding: 5px 13px;
+  border-radius:20px;
+  letter-spacing:0.01em;
+}
+
+/* ── HERO ── */
+.hero {
+  text-align:center;
+  padding: 4.5rem 2rem 2.5rem;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before {
+  content:'';
+  position:absolute; top:-60px; left:50%; transform:translateX(-50%);
+  width:700px; height:400px;
+  background: radial-gradient(ellipse, rgba(59,91,252,0.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-tag {
+  display:inline-flex; align-items:center; gap:7px;
+  background: var(--blue3);
+  border: 1px solid rgba(59,91,252,0.2);
+  padding: 6px 16px;
+  border-radius:20px;
+  font-size:0.78rem; font-weight:600;
+  color: var(--blue);
+  margin-bottom:1.4rem;
+}
+.hero-dot { width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; }
+.hero h1 {
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-weight:800;
+  font-size: clamp(2rem,5vw,3.6rem);
+  line-height:1.1;
+  letter-spacing:-0.04em;
+  margin-bottom:.9rem;
+  color: var(--text);
+}
+.hero h1 span { color:var(--blue); }
+.hero p {
+  font-size:1.05rem; color:var(--text2); max-width:480px;
+  margin: 0 auto 1.8rem; line-height:1.65; font-weight:400;
+}
+.hero-stats {
+  display:flex; justify-content:center; gap:2rem; flex-wrap:wrap;
+  font-size:0.82rem; font-weight:600; color:var(--text3);
+}
+.hero-stats span { display:flex; align-items:center; gap:5px; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size:0.71rem; font-weight:700;
+  letter-spacing:.13em; text-transform:uppercase;
+  color: var(--text3);
+  margin-bottom:1rem;
+  padding: 0 2rem;
+  display:flex; align-items:center; gap:10px;
+}
+.section-label::after {
+  content:''; flex:1; height:1px;
+  background: linear-gradient(90deg, var(--border2), transparent);
+}
+
+/* ── TOOL GRID ── */
+.tools-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap:10px;
+  margin: 0 2rem 2.5rem;
+}
+
+.tool-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  padding: 1.3rem;
+  cursor:pointer;
+  transition: all 0.18s;
+  position:relative;
+  overflow:hidden;
+  box-shadow: var(--shadow);
+}
+.tool-card:hover {
+  border-color: var(--blue2);
+  box-shadow: var(--shadow2);
+  transform: translateY(-2px);
+}
+.tool-card:hover .tool-arrow { opacity:1; transform:translate(0,0); }
+
+.tool-icon {
+  width:42px; height:42px; border-radius:11px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:19px; margin-bottom:.85rem; flex-shrink:0;
+}
+.tool-card h3 {
+  font-weight:700; font-size:.92rem;
+  margin-bottom:.28rem; letter-spacing:-.02em; color:var(--text);
+}
+.tool-card p { font-size:.75rem; color:var(--text2); line-height:1.5; }
+.tool-arrow {
+  position:absolute; top:12px; right:12px;
+  font-size:13px; color:var(--blue);
+  opacity:0; transform:translate(-4px,-4px);
+  transition:all .18s;
+}
+.tool-badge {
+  position:absolute; top:10px; right:10px;
+  font-size:.62rem; font-weight:700;
+  padding:2px 7px; border-radius:5px; letter-spacing:.05em;
+}
+.badge-new { background:rgba(14,159,110,.12); color:#0e9f6e; }
+.badge-hot { background:rgba(217,119,6,.12); color:#d97706; }
+
+/* ── TOOL PANEL ── */
+.tool-panel {
+  display:none; margin:0 2rem 2.5rem;
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow2);
+  overflow:hidden;
+}
+.tool-panel.active { display:block; }
+
+.panel-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.1rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  background: linear-gradient(to right, var(--blue3), var(--bg2));
+}
+.panel-title {
+  display:flex; align-items:center; gap:10px;
+  font-weight:800; font-size:1.05rem; letter-spacing:-.02em; color:var(--text);
+}
+.panel-close {
+  width:30px; height:30px;
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:8px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; color:var(--text2);
+  transition:all .15s;
+}
+.panel-close:hover { background:var(--blue3); color:var(--blue); }
+.panel-body { padding:1.5rem; }
+
+/* ── DROP ZONE ── */
+.drop-zone {
+  border:2px dashed var(--border2);
+  border-radius:var(--radius2); padding:2.2rem 1.5rem;
+  text-align:center; cursor:pointer;
+  transition:all .15s; margin-bottom:1rem;
+  background:var(--bg3);
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color:var(--blue);
+  background:var(--blue3);
+}
+.drop-icon { font-size:2rem; margin-bottom:.6rem; display:block; }
+.drop-zone h4 { font-weight:700; font-size:.92rem; margin-bottom:.25rem; color:var(--text); }
+.drop-zone p { font-size:.75rem; color:var(--text2); }
+.drop-zone input[type=file] { display:none; }
+
+/* ── FILE LIST ── */
+.file-item {
+  display:flex; align-items:center; gap:10px;
+  padding:.65rem .9rem;
+  background:var(--bg3); border-radius:8px; margin-bottom:6px;
+  font-size:.82rem; border:1px solid var(--border);
+}
+.file-item-name { flex:1; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.file-item-size { color:var(--text3); font-size:.72rem; flex-shrink:0; }
+.file-item-remove { cursor:pointer; color:var(--text3); font-size:13px; flex-shrink:0; transition:color .1s; }
+.file-item-remove:hover { color:var(--red); }
+
+/* ── INPUTS ── */
+.select-input {
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:8px; color:var(--text);
+  padding:8px 12px;
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:.82rem;
+  cursor:pointer; outline:none; transition:border .15s; min-width:130px;
+}
+.select-input:focus { border-color:var(--blue); background:var(--blue3); }
+.select-input option { background:var(--bg2); }
+
+.options-row { display:flex; gap:10px; margin-bottom:1rem; flex-wrap:wrap; align-items:center; }
+
+.range-row { display:flex; align-items:center; gap:10px; flex:1; min-width:180px; }
+.range-row label { font-size:.8rem; color:var(--text2); white-space:nowrap; font-weight:500; }
+.range-row input[type=range] { flex:1; accent-color:var(--blue); height:4px; }
+.range-val { font-size:.8rem; font-weight:700; color:var(--blue); min-width:36px; text-align:right; }
+
+/* ── BUTTONS ── */
+.btn {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:9px 18px; border-radius:9px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.84rem; font-weight:700;
+  cursor:pointer; border:none; transition:all .15s; text-decoration:none;
+}
+.btn-primary {
+  background: linear-gradient(135deg,var(--blue),var(--blue2));
+  color:white; box-shadow:0 3px 12px rgba(59,91,252,.28);
+}
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 5px 18px rgba(59,91,252,.38); }
+.btn-secondary {
+  background:var(--bg3); color:var(--text);
+  border:1px solid var(--border2);
+}
+.btn-secondary:hover { background:var(--blue3); color:var(--blue); border-color:var(--blue); }
+.btn-success {
+  background:rgba(14,159,110,.1); color:var(--green);
+  border:1px solid rgba(14,159,110,.25);
+}
+.btn-success:hover { background:rgba(14,159,110,.18); }
+.btn:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
+
+/* ── PROGRESS ── */
+.progress-wrap { margin:1rem 0; display:none; }
+.progress-wrap.active { display:block; }
+.progress-label { font-size:.78rem; color:var(--text2); margin-bottom:5px; display:flex; justify-content:space-between; font-weight:500; }
+.progress-bar { height:6px; background:var(--bg4); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--teal)); border-radius:3px; transition:width .3s ease; }
+
+/* ── RESULT BOX ── */
+.result-box { display:none; padding:.95rem 1.2rem; border-radius:10px; margin-top:1rem; }
+.result-box.active { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.result-box.success { background:rgba(14,159,110,.07); border:1px solid rgba(14,159,110,.22); }
+.result-box.error { background:rgba(229,62,62,.07); border:1px solid rgba(229,62,62,.2); }
+.result-info { font-size:.85rem; }
+.result-info strong { display:block; color:var(--green); margin-bottom:2px; font-weight:700; }
+.result-info span { color:var(--text2); font-size:.76rem; }
+.result-box.error .result-info strong { color:var(--red); }
+
+/* ── TABS ── */
+.tabs { display:flex; gap:2px; background:var(--bg3); padding:3px; border-radius:10px; margin-bottom:1.1rem; border:1px solid var(--border); }
+.tab-btn {
+  flex:1; padding:7px 14px; border-radius:7px; font-size:.8rem; font-weight:600;
+  cursor:pointer; background:transparent; border:none; color:var(--text2);
+  transition:all .15s; font-family:'Plus Jakarta Sans',sans-serif;
+}
+.tab-btn.active { background:var(--bg2); color:var(--blue); box-shadow:0 1px 6px rgba(59,91,252,.12); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* ── TEXTAREA ── */
+.textarea-input {
+  width:100%; background:var(--bg3); border:1px solid var(--border2);
+  border-radius:10px; padding:12px; color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:.85rem;
+  line-height:1.6; resize:vertical; min-height:100px; outline:none;
+  transition:border .15s;
+}
+.textarea-input:focus { border-color:var(--blue); background:var(--blue3); }
+
+/* ── IMG PREVIEWS ── */
+.img-preview-wrap { display:none; gap:10px; margin-top:.8rem; flex-wrap:wrap; }
+.img-preview-wrap.active { display:flex; }
+.img-preview-item { position:relative; border-radius:8px; overflow:hidden; border:1px solid var(--border2); background:var(--bg3); }
+.img-preview-item img { width:110px; height:80px; object-fit:cover; display:block; }
+.img-preview-label { font-size:.65rem; text-align:center; padding:3px; color:var(--text2); background:var(--bg4); }
+
+/* ── CANVAS ROW ── */
+.canvas-row { display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap; }
+.canvas-box { flex:1; min-width:200px; background:var(--bg3); border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+.canvas-box-label { font-size:.71rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:7px 12px; border-bottom:1px solid var(--border); }
+.canvas-box canvas, .canvas-box img { display:block; max-width:100%; max-height:260px; width:100%; object-fit:contain; padding:8px; }
+.checkerboard { background-image:linear-gradient(45deg,#dde2f2 25%,transparent 25%),linear-gradient(-45deg,#dde2f2 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#dde2f2 75%),linear-gradient(-45deg,transparent 75%,#dde2f2 75%); background-size:16px 16px; background-position:0 0,0 8px,8px -8px,-8px 0; }
+.color-input { width:36px; height:36px; border:none; border-radius:8px; cursor:pointer; overflow:hidden; background:transparent; padding:2px; }
+
+/* ── EDITOR ── */
+.editor-toolbar {
+  display:flex; flex-wrap:wrap; gap:4px;
+  padding:.7rem 1rem; border-bottom:1px solid var(--border);
+  background:var(--bg3);
+}
+.editor-toolbar button {
+  padding:5px 10px; border-radius:6px; border:1px solid var(--border2);
+  background:var(--bg2); color:var(--text); font-size:.78rem; font-weight:600;
+  cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;
+  transition:all .15s;
+}
+.editor-toolbar button:hover { background:var(--blue3); color:var(--blue); border-color:var(--blue); }
+.editor-toolbar select { padding:5px 8px; border-radius:6px; border:1px solid var(--border2); background:var(--bg2); color:var(--text); font-size:.78rem; font-family:'Plus Jakarta Sans',sans-serif; cursor:pointer; }
+.editor-toolbar input[type=color] { width:30px; height:30px; border:1px solid var(--border2); border-radius:6px; cursor:pointer; padding:2px; background:var(--bg2); }
+.editor-content {
+  min-height:320px; padding:1.5rem;
+  font-size:.92rem; line-height:1.75;
+  outline:none; color:var(--text);
+  overflow-y:auto;
+}
+.editor-content:empty::before { content:attr(data-placeholder); color:var(--text3); pointer-events:none; }
+.editor-footer {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:.7rem 1rem; border-top:1px solid var(--border);
+  background:var(--bg3); font-size:.75rem; color:var(--text2);
+}
+
+/* ── LOCALSHARE ── */
+.share-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.share-card { background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius2); padding:1.2rem; }
+.share-card h4 { font-weight:700; font-size:.9rem; margin-bottom:.5rem; color:var(--text); display:flex; align-items:center; gap:7px; }
+.share-files-list { max-height:200px; overflow-y:auto; }
+.share-file-item { display:flex; align-items:center; gap:8px; padding:.5rem .7rem; border-radius:7px; background:var(--bg2); border:1px solid var(--border); margin-bottom:5px; font-size:.8rem; cursor:pointer; transition:all .15s; }
+.share-file-item:hover { border-color:var(--blue); background:var(--blue3); color:var(--blue); }
+.share-code-box { font-family:'JetBrains Mono',monospace; font-size:2rem; font-weight:700; color:var(--blue); letter-spacing:.2em; text-align:center; background:var(--blue3); border:2px solid rgba(59,91,252,.2); border-radius:10px; padding:.8rem; margin:.7rem 0; }
+.qr-holder { display:flex; justify-content:center; padding:.8rem; background:white; border-radius:10px; border:1px solid var(--border); }
+
+/* ── TOAST ── */
+#toast { position:fixed; bottom:2rem; right:2rem; padding:11px 18px; background:var(--bg2); border:1px solid var(--border2); border-radius:10px; font-size:.84rem; font-weight:600; color:var(--text); z-index:9999; transform:translateY(60px); opacity:0; transition:all .25s; max-width:280px; box-shadow:var(--shadow2); }
+#toast.show { transform:translateY(0); opacity:1; }
+#toast.success { border-color:rgba(14,159,110,.4); }
+#toast.error { border-color:rgba(229,62,62,.4); }
+
+/* ── PILLS ── */
+.pill-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:.9rem; }
+.pill { font-size:.71rem; padding:3px 9px; border-radius:5px; font-weight:600; }
+.pill-blue { background:var(--blue3); color:var(--blue); }
+.pill-green { background:rgba(14,159,110,.1); color:var(--green); }
+.pill-amber { background:rgba(217,119,6,.1); color:var(--amber); }
+
+/* ── METRIC CARD ── */
+.metric-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-top:1rem; }
+.metric-card { background:var(--bg3); border-radius:10px; padding:.9rem; text-align:center; border:1px solid var(--border); }
+.metric-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text3); margin-bottom:4px; }
+.metric-val { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.5rem; color:var(--blue); }
+
+@media(max-width:640px) {
+  header { padding:0 1rem; }
+  .hero { padding:2.5rem 1rem 1.5rem; }
+  .tools-grid { margin:0 1rem 2rem; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px; }
+  .tool-panel { margin:0 1rem 2rem; }
+  .section-label { padding:0 1rem; }
+  nav { display:none; }
+  .share-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ HEADER ════════════════ -->
+<header>
+  <a class="logo-wrap" href="#">
+    <div class="logo-svg-box">
+      <!-- DOCIFY LOGO SVG -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="2" width="12" height="15" rx="2" fill="white" opacity="0.35"/>
+        <rect x="5" y="4" width="12" height="15" rx="2" fill="white" opacity="0.55"/>
+        <rect x="7" y="6" width="12" height="15" rx="2" fill="white"/>
+        <line x1="10" y1="10" x2="16" y2="10" stroke="#3b5bfc" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="10" y1="13" x2="16" y2="13" stroke="#3b5bfc" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="10" y1="16" x2="14" y2="16" stroke="#3b5bfc" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="19" cy="19" r="4" fill="#3b5bfc"/>
+        <path d="M17 19l1.5 1.5L21 17.5" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="logo-name">Doci<span>fy</span></span>
+  </a>
+  <nav>
+    <a onclick="scrollTo(0,0)">Home</a>
+    <a onclick="document.querySelector('#pdfSection').scrollIntoView({behavior:'smooth'})">PDF</a>
+    <a onclick="document.querySelector('#editorSection').scrollIntoView({behavior:'smooth'})">Editor</a>
+    <a onclick="openTool('localshare')">📡 LocalShare</a>
+    <a href="https://localshare-qbmm.onrender.com" target="_blank" style="color:var(--red)!important">↗ Full Site</a>
+  </nav>
+  <span class="header-badge">🔒 Files stay on your device</span>
+</header>
+
+<!-- ════════════════ HERO ════════════════ -->
+<div class="hero">
+  <div class="hero-tag"><span class="hero-dot"></span> No upload · No signup · 100% Free</div>
+  <h1>One Place for<br><span>All Your Documents</span></h1>
+  <p>Edit, merge, split, compress, convert — PDF, Word, Excel, and images. Plus instant file sharing on your local network.</p>
+  <div class="hero-stats">
+    <span>⚡ 25+ Tools</span>
+    <span>🔒 100% Private</span>
+    <span>🌐 LocalShare</span>
+    <span>✏️ Free Editors</span>
+  </div>
+</div>
+
+<!-- ════════════════ TOOL PANEL ════════════════ -->
+<div class="tool-panel" id="toolPanel">
+  <div class="panel-header">
+    <div class="panel-title" id="panelTitle">Tool</div>
+    <div class="panel-close" onclick="closePanel()">✕</div>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</div>
+
+<!-- ════════════════ EDITORS ════════════════ -->
+<div id="editorSection"></div>
+<div class="section-label">📝 Free Document Editors</div>
+<div class="tools-grid">
+  <div class="tool-card" onclick="openTool('doc-editor')" style="grid-column:span 2">
+    <div class="tool-icon" style="background:rgba(59,91,252,.1)">📄</div>
+    <h3>Document Editor (DOCX-style)</h3>
+    <p>Full rich-text editor — bold, italic, headings, lists, tables. Export to PDF or TXT.</p>
+    <span class="tool-arrow">↗</span>
+    <span class="tool-badge badge-new">FREE</span>
+  </div>
+  <div class="tool-card" onclick="openTool('sheet-editor')">
+    <div class="tool-icon" style="background:rgba(14,159,110,.1)">📊</div>
+    <h3>Spreadsheet Editor</h3>
+    <p>Excel-style grid editor. Import/export CSV.</p>
+    <span class="tool-arrow">↗</span>
+    <span class="tool-badge badge-new">FREE</span>
+  </div>
+  <div class="tool-card" onclick="openTool('pdf-viewer')">
+    <div class="tool-icon" style="background:rgba(217,119,6,.1)">📋</div>
+    <h3>PDF Viewer + Annotate</h3>
+    <p>View PDF pages, add text notes, highlight.</p>
+    <span class="tool-arrow">↗</span>
+    <span class="tool-badge badge-hot">HOT</span>
+  </div>
+</div>
+
+<!-- ════════════════ PDF TOOLS ════════════════ -->
+<div id="pdfSection"></div>
+<div class="section-label">📄 PDF Tools</div>
+<div class="tools-grid">
+  <div class="tool-card" onclick="openTool('merge-pdf')">
+    <div class="tool-icon" style="background:rgba(59,91,252,.1)">📎</div>
+    <h3>Merge PDF</h3><p>Combine multiple PDFs into one</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('split-pdf')">
+    <div class="tool-icon" style="background:rgba(8,145,178,.1)">✂️</div>
+    <h3>Split PDF</h3><p>Extract pages or split into files</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('compress-pdf')">
+    <div class="tool-icon" style="background:rgba(217,119,6,.1)">🗜️</div>
+    <h3>Compress PDF</h3><p>High, medium, or low compression</p>
+    <span class="tool-arrow">↗</span>
+    <span class="tool-badge badge-hot">HOT</span>
+  </div>
+  <div class="tool-card" onclick="openTool('rotate-pdf')">
+    <div class="tool-icon" style="background:rgba(14,159,110,.1)">🔄</div>
+    <h3>Rotate PDF</h3><p>Rotate pages 90°, 180°, 270°</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('watermark-pdf')">
+    <div class="tool-icon" style="background:rgba(217,70,239,.1)">🔏</div>
+    <h3>Watermark PDF</h3><p>Add diagonal text watermark</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('img-to-pdf')">
+    <div class="tool-icon" style="background:rgba(59,91,252,.1)">🖼️</div>
+    <h3>Images → PDF</h3><p>Convert JPG/PNG/WEBP to PDF</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+</div>
+
+<!-- ════════════════ IMAGE TOOLS ════════════════ -->
+<div class="section-label">🖼️ Image Tools</div>
+<div class="tools-grid">
+  <div class="tool-card" onclick="openTool('convert-img')">
+    <div class="tool-icon" style="background:rgba(59,91,252,.1)">🔁</div>
+    <h3>Convert Format</h3><p>JPG ↔ PNG ↔ WEBP ↔ BMP</p>
+    <span class="tool-arrow">↗</span>
+    <span class="tool-badge badge-hot">HOT</span>
+  </div>
+  <div class="tool-card" onclick="openTool('compress-img')">
+    <div class="tool-icon" style="background:rgba(8,145,178,.1)">📦</div>
+    <h3>Compress Image</h3><p>Reduce size with quality slider</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('resize-img')">
+    <div class="tool-icon" style="background:rgba(14,159,110,.1)">📐</div>
+    <h3>Resize Image</h3><p>Resize by pixels or percentage</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('white-bg')">
+    <div class="tool-icon" style="background:rgba(217,119,6,.1)">✍️</div>
+    <h3>White Background</h3><p>Perfect for signatures & stamps</p>
+    <span class="tool-arrow">↗</span>
+    <span class="tool-badge badge-new">NEW</span>
+  </div>
+  <div class="tool-card" onclick="openTool('remove-bg')">
+    <div class="tool-icon" style="background:rgba(217,70,239,.1)">🪄</div>
+    <h3>Remove Background</h3><p>Make background transparent</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('grayscale-img')">
+    <div class="tool-icon" style="background:rgba(59,91,252,.1)">🎨</div>
+    <h3>Image Filters</h3><p>Grayscale, sepia, invert, blur...</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('collage')">
+    <div class="tool-icon" style="background:rgba(14,159,110,.1)">🏞️</div>
+    <h3>Photo Collage</h3><p>Combine images into a grid</p>
+    <span class="tool-arrow">↗</span>
+    <span class="tool-badge badge-new">NEW</span>
+  </div>
+  <div class="tool-card" onclick="openTool('crop-img')">
+    <div class="tool-icon" style="background:rgba(217,119,6,.1)">✂️</div>
+    <h3>Crop Image</h3><p>Crop to any dimension</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+</div>
+
+<!-- ════════════════ UTILITY TOOLS ════════════════ -->
+<div class="section-label">🔧 Utility Tools</div>
+<div class="tools-grid">
+  <div class="tool-card" onclick="openTool('localshare')">
+    <div class="tool-icon" style="background:rgba(59,91,252,.1)">📡</div>
+    <h3>LocalShare</h3><p>Share files instantly on your network</p>
+    <span class="tool-arrow">↗</span>
+    <span class="tool-badge badge-new">NEW</span>
+  </div>
+  <div class="tool-card" onclick="openTool('word-count')">
+    <div class="tool-icon" style="background:rgba(8,145,178,.1)">📊</div>
+    <h3>Word Counter</h3><p>Words, chars, sentences, read time</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('qr-gen')">
+    <div class="tool-icon" style="background:rgba(14,159,110,.1)">⬛</div>
+    <h3>QR Generator</h3><p>Generate QR from text or URL</p>
+    <span class="tool-arrow">↗</span>
+    <span class="tool-badge badge-hot">HOT</span>
+  </div>
+  <div class="tool-card" onclick="openTool('csv-json')">
+    <div class="tool-icon" style="background:rgba(217,119,6,.1)">📋</div>
+    <h3>CSV ↔ JSON</h3><p>Convert between formats</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('hash-gen')">
+    <div class="tool-icon" style="background:rgba(229,62,62,.1)">🔐</div>
+    <h3>Hash Generator</h3><p>SHA-256, SHA-1, SHA-512</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('lorem')">
+    <div class="tool-icon" style="background:rgba(217,70,239,.1)">📜</div>
+    <h3>Lorem Ipsum</h3><p>Generate placeholder text</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('base64')">
+    <div class="tool-icon" style="background:rgba(8,145,178,.1)">🔢</div>
+    <h3>Base64 Encode/Decode</h3><p>Encode text and files to Base64</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+  <div class="tool-card" onclick="openTool('txt-to-pdf')">
+    <div class="tool-icon" style="background:rgba(59,91,252,.1)">📝</div>
+    <h3>Text → PDF</h3><p>Convert plain text to PDF</p>
+    <span class="tool-arrow">↗</span>
+  </div>
+</div>
+
+<!-- ════════════════ RED FOOTER ════════════════ -->
+<footer style="background:#b91c1c;color:white;margin-top:3rem">
+
+  <!-- Top section: columns -->
+  <div style="max-width:1100px;margin:0 auto;padding:2.5rem 2rem 1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem">
+
+    <!-- Brand -->
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:.8rem">
+        <div style="width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.25)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="2" width="12" height="15" rx="2" fill="white" opacity="0.25"/>
+            <rect x="5" y="4" width="12" height="15" rx="2" fill="white" opacity="0.45"/>
+            <rect x="7" y="6" width="12" height="15" rx="2" fill="white"/>
+            <line x1="10" y1="10" x2="16" y2="10" stroke="#b91c1c" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="10" y1="13" x2="16" y2="13" stroke="#b91c1c" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="10" y1="16" x2="14" y2="16" stroke="#b91c1c" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-.03em">Docify</span>
+      </div>
+      <p style="font-size:.8rem;line-height:1.6;color:rgba(255,255,255,0.75);max-width:220px">All-in-one document studio. Edit, convert, compress, and share — 100% in your browser.</p>
+      <div style="margin-top:.8rem;font-size:.72rem;color:rgba(255,255,255,.5)">🔒 No upload · No signup · Free forever</div>
+    </div>
+
+    <!-- Tools -->
+    <div>
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:.7rem">Tools</div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:.38rem">
+        <li style="font-size:.8rem;color:rgba(255,255,255,.8);cursor:pointer" onclick="openTool('merge-pdf')" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.8)'">→ PDF Merge &amp; Split</li>
+        <li style="font-size:.8rem;color:rgba(255,255,255,.8);cursor:pointer" onclick="openTool('compress-pdf')" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.8)'">→ PDF Compress</li>
+        <li style="font-size:.8rem;color:rgba(255,255,255,.8);cursor:pointer" onclick="openTool('convert-img')" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.8)'">→ Image Convert</li>
+        <li style="font-size:.8rem;color:rgba(255,255,255,.8);cursor:pointer" onclick="openTool('compress-img')" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.8)'">→ Image Compress</li>
+        <li style="font-size:.8rem;color:rgba(255,255,255,.8);cursor:pointer" onclick="openTool('white-bg')" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.8)'">→ White Background</li>
+        <li style="font-size:.8rem;color:rgba(255,255,255,.8);cursor:pointer" onclick="openTool('doc-editor')" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.8)'">→ Document Editor</li>
+        <li style="font-size:.8rem;color:rgba(255,255,255,.8);cursor:pointer" onclick="openTool('sheet-editor')" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.8)'">→ Spreadsheet Editor</li>
+        <li style="font-size:.8rem;color:rgba(255,255,255,.8);cursor:pointer" onclick="openTool('qr-gen')" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.8)'">→ QR Generator</li>
+      </ul>
+    </div>
+
+    <!-- LocalShare -->
+    <div>
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:.7rem">LocalShare</div>
+      <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:1rem;margin-bottom:.8rem">
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.3rem">📡 Share Files Instantly</div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.6rem">Upload files, get a 6-digit code. Share with anyone — no login, auto-expires.</p>
+        <a href="https://localshare-qbmm.onrender.com" target="_blank"
+           style="display:inline-block;background:white;color:#b91c1c;font-size:.78rem;font-weight:800;padding:6px 14px;border-radius:7px;text-decoration:none">
+          🔗 Open LocalShare ↗
+        </a>
+      </div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.6);line-height:1.5">
+        ✔ No login required<br>
+        ✔ 24h / 3d / 7d expiry<br>
+        ✔ Up to 100MB per file<br>
+        ✔ Cloudinary-powered storage
+      </div>
+    </div>
+
+    <!-- BITSresources -->
+    <div>
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:.7rem">Community</div>
+      <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:1rem;margin-bottom:.8rem">
+        <div style="font-size:.85rem;font-weight:700;margin-bottom:.3rem">🏠 BITSresources</div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.6rem">Free academic resources for BITS Warangal R22 students. Notes, QBs, and more.</p>
+        <a href="https://bitsresourcesr22.free.nf/" target="_blank"
+           style="display:inline-block;background:white;color:#b91c1c;font-size:.78rem;font-weight:800;padding:6px 14px;border-radius:7px;text-decoration:none">
+          Visit BITSresources ↗
+        </a>
+      </div>
+      <div style="font-size:.74rem;color:rgba(255,255,255,.6)">
+        📧 <a href="/cdn-cgi/l/email-protection#03616a77707166706c767160667071313143646e626a6f2d606c6e" style="color:rgba(255,255,255,.7);text-decoration:none"><span class="__cf_email__" data-cfemail="d3b1baa7a0a1b6a0bca6a1b0b6a0a1e1e193b4beb2babffdb0bcbe">[email&#160;protected]</span></a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Divider -->
+  <div style="border-top:1px solid rgba(255,255,255,.15);max-width:1100px;margin:0 auto"></div>
+
+  <!-- Bottom bar -->
+  <div style="max-width:1100px;margin:0 auto;padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+    <span style="font-size:.74rem;color:rgba(255,255,255,.55)">© 2026 Docify · Built for BITS Warangal R22 · All processing is browser-side</span>
+    <div style="display:flex;gap:.8rem">
+      <a href="https://localshare-qbmm.onrender.com" target="_blank" style="font-size:.74rem;color:rgba(255,255,255,.6);text-decoration:none" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.6)'">LocalShare</a>
+      <a href="https://bitsresourcesr22.free.nf/" target="_blank" style="font-size:.74rem;color:rgba(255,255,255,.6);text-decoration:none" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.6)'">BITSresources</a>
+    </div>
+  </div>
+
+</footer>
+
+<div id="toast"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════
+//  PANEL SYSTEM
+// ═══════════════════════════════════════════════════════
+const TOOLS = {
+  'doc-editor':'📄','sheet-editor':'📊','pdf-viewer':'📋',
+  'merge-pdf':'📎','split-pdf':'✂️','compress-pdf':'🗜️','rotate-pdf':'🔄','watermark-pdf':'🔏','img-to-pdf':'🖼️',
+  'convert-img':'🔁','compress-img':'📦','resize-img':'📐','white-bg':'✍️','remove-bg':'🪄','grayscale-img':'🎨','collage':'🏞️','crop-img':'✂️',
+  'localshare':'📡','word-count':'📊','qr-gen':'⬛','csv-json':'📋','hash-gen':'🔐','lorem':'📜','base64':'🔢','txt-to-pdf':'📝'
+};
+const TOOL_NAMES = {
+  'doc-editor':'Document Editor','sheet-editor':'Spreadsheet Editor','pdf-viewer':'PDF Viewer & Annotate',
+  'merge-pdf':'Merge PDFs','split-pdf':'Split PDF','compress-pdf':'Compress PDF','rotate-pdf':'Rotate PDF','watermark-pdf':'Watermark PDF','img-to-pdf':'Images → PDF',
+  'convert-img':'Convert Image Format','compress-img':'Compress Image','resize-img':'Resize Image','white-bg':'White Background','remove-bg':'Remove Background','grayscale-img':'Image Filters','collage':'Photo Collage','crop-img':'Crop Image',
+  'localshare':'LocalShare — Share Files Locally','word-count':'Word Counter','qr-gen':'QR Code Generator','csv-json':'CSV ↔ JSON','hash-gen':'Hash Generator','lorem':'Lorem Ipsum','base64':'Base64','txt-to-pdf':'Text → PDF'
+};
+
+let currentTool = null, uploadedFiles = [];
+
+function openTool(id) {
+  currentTool = id; uploadedFiles = [];
+  document.getElementById('panelTitle').innerHTML = `<span>${TOOLS[id]}</span> ${TOOL_NAMES[id]}`;
+  document.getElementById('panelBody').innerHTML = buildPanel(id);
+  document.getElementById('toolPanel').classList.add('active');
+  document.getElementById('toolPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+  initPanel(id);
+}
+function closePanel() { document.getElementById('toolPanel').classList.remove('active'); currentTool = null; }
+
+// ═══════════════════════════════════════════════════════
+//  PANEL BUILDERS
+// ═══════════════════════════════════════════════════════
+function buildPanel(id) {
+  switch(id) {
+
+// ──── DOCUMENT EDITOR ────────────────────────────────
+case 'doc-editor': return `
+<div style="border:1px solid var(--border2);border-radius:var(--radius2);overflow:hidden;background:var(--bg2)">
+  <div class="editor-toolbar">
+    <button onclick="ef('bold')"><b>B</b></button>
+    <button onclick="ef('italic')"><i>I</i></button>
+    <button onclick="ef('underline')"><u>U</u></button>
+    <button onclick="ef('strikeThrough')"><s>S</s></button>
+    <span style="width:1px;background:var(--border2);margin:0 4px"></span>
+    <select onchange="ef('formatBlock',this.value)">
+      <option value="p">Paragraph</option>
+      <option value="h1">Heading 1</option>
+      <option value="h2">Heading 2</option>
+      <option value="h3">Heading 3</option>
+      <option value="pre">Code</option>
+    </select>
+    <select onchange="ef('fontSize',this.value)">
+      <option value="3" selected>Normal</option>
+      <option value="1">Small</option>
+      <option value="4">Large</option>
+      <option value="5">XL</option>
+      <option value="6">XXL</option>
+    </select>
+    <span style="width:1px;background:var(--border2);margin:0 4px"></span>
+    <button onclick="ef('justifyLeft')">⬅</button>
+    <button onclick="ef('justifyCenter')">⬛</button>
+    <button onclick="ef('justifyRight')">➡</button>
+    <button onclick="ef('justifyFull')">☰</button>
+    <span style="width:1px;background:var(--border2);margin:0 4px"></span>
+    <button onclick="ef('insertUnorderedList')">• List</button>
+    <button onclick="ef('insertOrderedList')">1. List</button>
+    <button onclick="insertTable()">⊞ Table</button>
+    <button onclick="insertHR()">─ Line</button>
+    <span style="width:1px;background:var(--border2);margin:0 4px"></span>
+    <input type="color" title="Text color" onchange="ef('foreColor',this.value)" value="#1a1d3a">
+    <input type="color" title="Highlight color" onchange="ef('hiliteColor',this.value)" value="#e8ecff">
+    <span style="width:1px;background:var(--border2);margin:0 4px"></span>
+    <button onclick="ef('undo')">↩</button>
+    <button onclick="ef('redo')">↪</button>
+  </div>
+  <div class="editor-content" id="docEditor" contenteditable="true" data-placeholder="Start typing your document..." oninput="updateEditorStats()"></div>
+  <div class="editor-footer">
+    <span id="editorStats">0 words · 0 chars</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" style="padding:5px 12px;font-size:.78rem" onclick="exportDocTxt()">⬇ TXT</button>
+      <button class="btn btn-secondary" style="padding:5px 12px;font-size:.78rem" onclick="exportDocHTML()">⬇ HTML</button>
+      <button class="btn btn-primary" style="padding:5px 14px;font-size:.78rem" onclick="exportDocPDF()">⬇ PDF</button>
+    </div>
+  </div>
+</div>`;
+
+// ──── SPREADSHEET EDITOR ──────────────────────────────
+case 'sheet-editor': return `
+<div style="margin-bottom:.8rem;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+  <button class="btn btn-secondary" onclick="addSheetRow()">+ Row</button>
+  <button class="btn btn-secondary" onclick="addSheetCol()">+ Column</button>
+  <button class="btn btn-secondary" onclick="clearSheet()">🗑 Clear</button>
+  <input type="file" id="csvImport" accept=".csv" onchange="importCSV(event)" style="display:none">
+  <button class="btn btn-secondary" onclick="document.getElementById('csvImport').click()">📂 Import CSV</button>
+  <button class="btn btn-secondary" onclick="exportSheetCSV()">⬇ CSV</button>
+  <button class="btn btn-primary" onclick="exportSheetPDF()">⬇ PDF</button>
+</div>
+<div style="overflow:auto;border:1px solid var(--border2);border-radius:var(--radius2)">
+  <table id="sheetTable" style="border-collapse:collapse;min-width:100%;font-size:.82rem"></table>
+</div>
+<div style="margin-top:.6rem;font-size:.74rem;color:var(--text3)">Click any cell to edit · Tab to move right · Enter to move down</div>`;
+
+// ──── PDF VIEWER ──────────────────────────────────────
+case 'pdf-viewer': return `
+${dropZone('pdf',false)}
+<div id="fileList" class="file-list"></div>
+<div id="pdfViewerArea" style="display:none">
+  <div style="display:flex;gap:8px;margin-bottom:.8rem;flex-wrap:wrap;align-items:center">
+    <button class="btn btn-secondary" onclick="pdfPrevPage()">← Prev</button>
+    <span id="pdfPageInfo" style="font-size:.82rem;font-weight:600;color:var(--text2);padding:0 4px">Page 1 / 1</span>
+    <button class="btn btn-secondary" onclick="pdfNextPage()">Next →</button>
+    <input class="select-input" id="noteInput" placeholder="Add note..." style="flex:1;min-width:180px" />
+    <button class="btn btn-primary" onclick="addPdfNote()">+ Add Note</button>
+  </div>
+  <div style="position:relative;background:white;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)">
+    <canvas id="pdfCanvas" style="display:block;max-width:100%"></canvas>
+    <div id="pdfAnnotations" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none"></div>
+  </div>
+  <div id="notesList" style="margin-top:.8rem"></div>
+</div>
+${result()}`;
+
+// ──── PDF TOOLS ────────────────────────────────────────
+case 'merge-pdf': return `
+${dropZone('pdf',true)}
+<div id="fileList" class="file-list"></div>
+<div class="options-row"><button class="btn btn-primary" onclick="mergePDFs()">⚡ Merge PDFs</button></div>
+${progress()}${result()}`;
+
+case 'split-pdf': return `
+${dropZone('pdf',false)}
+<div id="fileList" class="file-list"></div>
+<div class="options-row">
+  <input class="select-input" id="pageRange" style="min-width:220px" placeholder="Pages: 1,3,5-8 (blank=all)" />
+  <button class="btn btn-primary" onclick="splitPDF()">✂️ Split PDF</button>
+</div>
+${progress()}${result()}`;
+
+case 'compress-pdf': return `
+${dropZone('pdf',false)}
+<div id="fileList" class="file-list"></div>
+<div class="options-row">
+  <select class="select-input" id="compressLevel">
+    <option value="low">Low Quality (smallest file)</option>
+    <option value="med" selected>Medium Quality</option>
+    <option value="high">High Quality</option>
+  </select>
+  <button class="btn btn-primary" onclick="compressPDF()">🗜️ Compress</button>
+</div>
+${progress()}${result()}`;
+
+case 'rotate-pdf': return `
+${dropZone('pdf',false)}
+<div id="fileList" class="file-list"></div>
+<div class="options-row">
+  <select class="select-input" id="rotateDeg">
+    <option value="90">Rotate 90° →</option>
+    <option value="180">Rotate 180°</option>
+    <option value="270">Rotate 90° ←</option>
+  </select>
+  <button class="btn btn-primary" onclick="rotatePDF()">🔄 Rotate</button>
+</div>
+${progress()}${result()}`;
+
+case 'watermark-pdf': return `
+${dropZone('pdf',false)}
+<div id="fileList" class="file-list"></div>
+<div class="options-row">
+  <input class="select-input" id="wmText" placeholder="Watermark text" value="CONFIDENTIAL" style="min-width:200px" />
+</div>
+<div class="options-row">
+  <div class="range-row"><label>Opacity</label><input type="range" min="5" max="70" value="25" id="wmOpacity" oninput="document.getElementById('wmov').textContent=this.value+'%'"><span class="range-val" id="wmov">25%</span></div>
+  <div class="range-row"><label>Size</label><input type="range" min="14" max="72" value="36" id="wmSize" oninput="document.getElementById('wmsv').textContent=this.value+'pt'"><span class="range-val" id="wmsv">36pt</span></div>
+</div>
+<div class="options-row"><button class="btn btn-primary" onclick="watermarkPDF()">🔏 Add Watermark</button></div>
+${progress()}${result()}`;
+
+case 'img-to-pdf': return `
+${dropZone('image',true)}
+<div id="fileList" class="file-list"></div>
+<div class="img-preview-wrap" id="imgPreviews"></div>
+<div class="options-row" style="margin-top:.8rem">
+  <select class="select-input" id="imgPageSize"><option value="fit" selected>Fit to Image</option><option value="a4">A4</option><option value="letter">Letter</option></select>
+  <button class="btn btn-primary" onclick="imagesToPDF()">📄 Convert to PDF</button>
+</div>
+${progress()}${result()}`;
+
+// ──── IMAGE TOOLS ─────────────────────────────────────
+case 'convert-img': return `
+${dropZone('image',true)}
+<div id="fileList" class="file-list"></div>
+<div class="img-preview-wrap" id="imgPreviews"></div>
+<div class="options-row" style="margin-top:.8rem">
+  <select class="select-input" id="convertFormat"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WEBP</option><option value="image/bmp">BMP</option></select>
+  <div class="range-row"><label>Quality</label><input type="range" min="10" max="100" value="92" id="imgQuality" step="1" oninput="document.getElementById('iqv').textContent=this.value+'%'"><span class="range-val" id="iqv">92%</span></div>
+  <button class="btn btn-primary" onclick="convertImages()">🔁 Convert</button>
+</div>
+${progress()}${result()}`;
+
+case 'compress-img': return `
+${dropZone('image',true)}
+<div id="fileList" class="file-list"></div>
+<div class="img-preview-wrap" id="imgPreviews"></div>
+<div class="options-row" style="margin-top:.8rem">
+  <select class="select-input" id="compressPreset" onchange="applyPreset(this.value)"><option value="">Custom</option><option value="90">High (90%)</option><option value="70">Medium (70%)</option><option value="50">Low (50%)</option><option value="30">Tiny (30%)</option></select>
+  <div class="range-row"><label>Quality</label><input type="range" min="5" max="100" value="75" id="cqSlider" step="1" oninput="document.getElementById('cqv').textContent=this.value+'%'"><span class="range-val" id="cqv">75%</span></div>
+  <button class="btn btn-primary" onclick="compressImages()">📦 Compress</button>
+</div>
+${progress()}${result()}`;
+
+case 'resize-img': return `
+${dropZone('image',false)}
+<div id="fileList" class="file-list"></div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab(this,'tab-px')">By Pixels</button>
+  <button class="tab-btn" onclick="switchTab(this,'tab-pct')">By Percentage</button>
+</div>
+<div id="tab-px" class="tab-content active">
+  <div class="options-row">
+    <input class="select-input" type="number" id="resW" placeholder="Width (px)" />
+    <input class="select-input" type="number" id="resH" placeholder="Height (px)" />
+    <label style="font-size:.8rem;color:var(--text2);display:flex;align-items:center;gap:6px"><input type="checkbox" id="aspectLock" checked> Lock ratio</label>
+  </div>
+</div>
+<div id="tab-pct" class="tab-content">
+  <div class="range-row" style="margin-bottom:1rem"><label>Scale</label><input type="range" min="5" max="200" value="50" id="scaleSlider" step="5" oninput="document.getElementById('scalev').textContent=this.value+'%'"><span class="range-val" id="scalev">50%</span></div>
+</div>
+<div class="options-row"><button class="btn btn-primary" onclick="resizeImage()">📐 Resize</button></div>
+${progress()}${result()}`;
+
+case 'white-bg': return `
+${dropZone('image',false)}
+<div id="fileList" class="file-list"></div>
+<div class="canvas-row" id="canvasRow" style="display:none">
+  <div class="canvas-box checkerboard"><div class="canvas-box-label">Original</div><img id="origImg" /></div>
+  <div class="canvas-box" style="background:white"><div class="canvas-box-label" style="color:#333;border-color:#ddd">With BG Applied</div><canvas id="whiteBgCanvas"></canvas></div>
+</div>
+<div class="options-row" style="margin-top:.8rem">
+  <label style="font-size:.82rem;color:var(--text2);font-weight:600">BG Color:</label>
+  <input type="color" class="color-input" id="bgColor" value="#ffffff" />
+  <select class="select-input" id="whiteBgFormat"><option value="image/jpeg">JPG</option><option value="image/png" selected>PNG</option></select>
+  <button class="btn btn-primary" onclick="addWhiteBg()">✍️ Apply Background</button>
+</div>
+${result()}`;
+
+case 'remove-bg': return `
+${dropZone('image',false)}
+<div id="fileList" class="file-list"></div>
+<div class="canvas-row" id="canvasRow" style="display:none">
+  <div class="canvas-box"><div class="canvas-box-label">Original</div><img id="origImg" /></div>
+  <div class="canvas-box checkerboard"><div class="canvas-box-label">Transparent BG</div><canvas id="removeBgCanvas"></canvas></div>
+</div>
+<div class="options-row" style="margin-top:.8rem">
+  <div class="range-row"><label>Threshold</label><input type="range" min="10" max="100" value="30" id="bgThreshold" step="1" oninput="document.getElementById('tval').textContent=this.value"><span class="range-val" id="tval">30</span></div>
+  <button class="btn btn-secondary" onclick="previewRemoveBg()">👁 Preview</button>
+  <button class="btn btn-primary" onclick="downloadRemoveBg()">⬇️ Download PNG</button>
+</div>
+${result()}`;
+
+case 'grayscale-img': return `
+${dropZone('image',false)}
+<div id="fileList" class="file-list"></div>
+<div class="options-row">
+  <select class="select-input" id="filterType"><option value="grayscale">Grayscale</option><option value="sepia">Sepia</option><option value="invert">Invert</option><option value="brightness">Brightness+</option><option value="contrast">Contrast+</option><option value="blur">Blur</option></select>
+  <div class="range-row"><label>Intensity</label><input type="range" min="0" max="100" value="100" id="filterIntensity" step="1" oninput="document.getElementById('fiv').textContent=this.value+'%'"><span class="range-val" id="fiv">100%</span></div>
+</div>
+<div class="canvas-row" id="canvasRow" style="display:none;margin-top:.8rem">
+  <div class="canvas-box"><div class="canvas-box-label">Original</div><img id="origImg" /></div>
+  <div class="canvas-box"><div class="canvas-box-label">Filtered</div><canvas id="filterCanvas"></canvas></div>
+</div>
+<div class="options-row" style="margin-top:.8rem">
+  <button class="btn btn-secondary" onclick="previewFilter()">👁 Preview</button>
+  <button class="btn btn-primary" onclick="applyFilter()">🎨 Apply & Download</button>
+</div>
+${result()}`;
+
+case 'collage': return `
+${dropZone('image',true)}
+<div id="fileList" class="file-list"></div>
+<div class="img-preview-wrap" id="imgPreviews"></div>
+<div class="options-row" style="margin-top:.8rem">
+  <select class="select-input" id="collageLayout"><option value="2x2">2×2 Grid</option><option value="3x3">3×3 Grid</option><option value="1x2">Side by Side</option><option value="1x3">1×3 Row</option><option value="2x1">2×1 Stack</option></select>
+  <div class="range-row"><label>Gap</label><input type="range" min="0" max="20" value="4" id="collageGap" step="1" oninput="document.getElementById('cgv').textContent=this.value+'px'"><span class="range-val" id="cgv">4px</span></div>
+  <input type="color" class="color-input" id="collageBg" value="#ffffff" />
+</div>
+<div style="margin:.8rem 0;display:none" id="collagePreviewWrap"><canvas id="collageCanvas" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></canvas></div>
+<div class="options-row">
+  <button class="btn btn-secondary" onclick="previewCollage()">👁 Preview</button>
+  <button class="btn btn-primary" onclick="downloadCollage()">⬇️ Download Collage</button>
+</div>
+${result()}`;
+
+case 'crop-img': return `
+${dropZone('image',false)}
+<div id="fileList" class="file-list"></div>
+<div style="margin:1rem 0;position:relative;display:none" id="cropWrap">
+  <canvas id="cropCanvas" style="max-width:100%;border-radius:8px;cursor:crosshair;border:1px solid var(--border2)"></canvas>
+</div>
+<div class="options-row">
+  <input class="select-input" type="number" id="cropX" placeholder="X" />
+  <input class="select-input" type="number" id="cropY" placeholder="Y" />
+  <input class="select-input" type="number" id="cropW" placeholder="W" />
+  <input class="select-input" type="number" id="cropH" placeholder="H" />
+  <button class="btn btn-primary" onclick="cropImage()">✂️ Crop</button>
+</div>
+${result()}`;
+
+// ──── LOCALSHARE ────────────────────────────────────────
+case 'localshare': return `
+<div class="pill-row">
+  <span class="pill pill-blue">☁️ Powered by your LocalShare server</span>
+  <span class="pill pill-green">Cloudinary storage · Auto-expires</span>
+  <span class="pill pill-amber">Max 100MB per file · Up to 20 files</span>
+</div>
+
+<!-- Banner linking to full LocalShare site -->
+<div style="background:linear-gradient(135deg,#1a1d3a,#3b5bfc);border-radius:var(--radius2);padding:1rem 1.2rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+  <div>
+    <div style="font-weight:800;font-size:.95rem;color:white;margin-bottom:2px">📡 LocalShare — Full Website</div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,0.65)">6-digit codes · 24h/3d/7d expiry · no login needed</div>
+  </div>
+  <a href="https://localshare-qbmm.onrender.com" target="_blank" class="btn" style="background:white;color:#3b5bfc;font-size:.82rem;font-weight:700;flex-shrink:0">🔗 Open LocalShare ↗</a>
+</div>
+
+<div class="share-grid">
+  <!-- SEND PANEL -->
+  <div class="share-card">
+    <h4>📤 Send Files via LocalShare</h4>
+    <p style="font-size:.76rem;color:var(--text2);margin-bottom:.8rem">Upload files to your server — get a 6-digit code + link to share with anyone.</p>
+    ${dropZone('*',true,'shareDrop')}
+    <div id="shareFileList"></div>
+
+    <div class="options-row" style="margin-top:.6rem">
+      <label style="font-size:.8rem;color:var(--text2);font-weight:600">Expires after:</label>
+      <select class="select-input" id="shareDuration">
+        <option value="24h">24 Hours</option>
+        <option value="3d">3 Days</option>
+        <option value="7d">7 Days</option>
+      </select>
+    </div>
+
+    <!-- Progress bar -->
+    <div id="shareProgress" style="display:none;margin:.6rem 0">
+      <div style="height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:5px">
+        <div id="shareProgFill" style="height:100%;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:3px;width:0%;transition:width .4s ease"></div>
+      </div>
+      <div id="shareProgLabel" style="font-size:.75rem;color:var(--blue);font-weight:600;text-align:center">Uploading…</div>
+    </div>
+
+    <div class="options-row">
+      <button class="btn btn-primary" id="shareUploadBtn" style="width:100%" onclick="createShareSession()">⚡ Upload & Share</button>
+    </div>
+
+    <!-- Result -->
+    <div id="shareCodeArea" style="display:none;margin-top:.6rem">
+      <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:.4rem">Share Code</div>
+      <div class="share-code-box" id="shareCode">------</div>
+
+      <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;margin:.5rem 0 .3rem">Share Link</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:.7rem">
+        <a id="shareFullLink" href="#" target="_blank" style="flex:1;font-size:.76rem;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--blue3);padding:6px 10px;border-radius:7px;text-decoration:none">–</a>
+        <button class="btn btn-secondary" style="padding:6px 10px;font-size:.78rem;flex-shrink:0" onclick="copyShareLink()">📋 Copy</button>
+      </div>
+
+      <div class="qr-holder" id="shareQR"></div>
+      <p style="font-size:.73rem;color:var(--text2);text-align:center;margin-top:.4rem">Scan QR or share the code — works from any device</p>
+    </div>
+  </div>
+
+  <!-- RECEIVE PANEL -->
+  <div class="share-card">
+    <h4>📥 Receive Files</h4>
+    <p style="font-size:.76rem;color:var(--text2);margin-bottom:.8rem">Paste the share link or enter the 6-digit code to access files.</p>
+    <input class="select-input" id="receiveCode"
+      placeholder="Paste link or 6-digit code"
+      style="width:100%;margin-bottom:.7rem;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;font-size:.88rem;text-align:center"
+      maxlength="80"
+      onkeydown="if(event.key==='Enter')receiveFiles()" />
+    <button class="btn btn-primary" style="width:100%;margin-bottom:.7rem" onclick="receiveFiles()">🔍 Find & Download Files</button>
+
+    <div id="receiveFileList" class="share-files-list" style="margin-top:.2rem"></div>
+
+    <!-- Info note about Render cold start -->
+    <div style="margin-top:.8rem;padding:.7rem;background:rgba(217,119,6,.07);border:1px solid rgba(217,119,6,.2);border-radius:8px">
+      <p style="font-size:.72rem;color:var(--amber);font-weight:600;line-height:1.5">⚠️ First request may take 30–60 seconds if the server is sleeping (Render free tier). Just try again after a moment.</p>
+    </div>
+  </div>
+</div>`;
+
+// ──── UTILITY TOOLS ────────────────────────────────────
+case 'word-count': return `
+<textarea class="textarea-input" id="wcText" placeholder="Paste text to analyze..." style="min-height:180px" oninput="analyzeText()"></textarea>
+<div class="metric-grid">
+  ${['Words','Characters','Sentences','Paragraphs','Reading','Unique'].map(l=>`<div class="metric-card"><div class="metric-label">${l}</div><div class="metric-val" id="wc-${l.toLowerCase()}">0</div></div>`).join('')}
+</div>`;
+
+case 'qr-gen': return `
+<div style="display:flex;gap:1rem;flex-wrap:wrap">
+  <div style="flex:1;min-width:220px">
+    <input class="select-input" id="qrInput" placeholder="Enter text or URL..." style="width:100%;margin-bottom:.8rem" value="https://docify.app" />
+    <div class="options-row" style="flex-direction:column;align-items:stretch;gap:.6rem">
+      <div class="range-row"><label>Size</label><input type="range" min="100" max="400" value="220" id="qrSize" step="20" oninput="document.getElementById('qrsizev').textContent=this.value+'px'"><span class="range-val" id="qrsizev">220px</span></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label style="font-size:.8rem;color:var(--text2);font-weight:500">FG:</label><input type="color" class="color-input" id="qrDark" value="#1a1d3a">
+        <label style="font-size:.8rem;color:var(--text2);font-weight:500">BG:</label><input type="color" class="color-input" id="qrLight" value="#ffffff">
+      </div>
+    </div>
+    <div class="options-row" style="margin-top:.8rem">
+      <button class="btn btn-primary" onclick="genQR()">⬛ Generate</button>
+      <button class="btn btn-secondary" onclick="downloadQR()">⬇ PNG</button>
+    </div>
+  </div>
+  <div style="background:white;border-radius:12px;padding:1rem;flex-shrink:0;min-width:160px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
+    <div id="qrOutput" style="width:220px;height:220px;display:flex;align-items:center;justify-content:center"><span style="color:#ccc;font-size:.8rem">QR preview</span></div>
+  </div>
+</div>`;
+
+case 'csv-json': return `
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab(this,'csv2j')">CSV → JSON</button>
+  <button class="tab-btn" onclick="switchTab(this,'j2csv')">JSON → CSV</button>
+</div>
+<div id="csv2j" class="tab-content active">
+  <textarea class="textarea-input" id="csvInput" placeholder="name,age\nAlice,25" style="min-height:130px;font-family:'JetBrains Mono',monospace;font-size:.8rem">name,age,city\nAlice,25,Delhi\nBob,30,Mumbai</textarea>
+  <div class="options-row" style="margin-top:.7rem"><button class="btn btn-primary" onclick="csv2json()">Convert →</button></div>
+  <textarea class="textarea-input" id="jsonOutput" style="min-height:110px;margin-top:.7rem;font-family:'JetBrains Mono',monospace;font-size:.78rem" readonly></textarea>
+  <div class="options-row" style="margin-top:.5rem"><button class="btn btn-secondary" onclick="copyText('jsonOutput')">📋 Copy</button><button class="btn btn-secondary" onclick="downloadText('jsonOutput','data.json')">⬇ JSON</button></div>
+</div>
+<div id="j2csv" class="tab-content">
+  <textarea class="textarea-input" id="jsonInput" placeholder='[{"name":"Alice"}]' style="min-height:130px;font-family:'JetBrains Mono',monospace;font-size:.8rem"></textarea>
+  <div class="options-row" style="margin-top:.7rem"><button class="btn btn-primary" onclick="json2csv()">Convert →</button></div>
+  <textarea class="textarea-input" id="csvOutput" style="min-height:110px;margin-top:.7rem;font-family:'JetBrains Mono',monospace;font-size:.78rem" readonly></textarea>
+  <div class="options-row" style="margin-top:.5rem"><button class="btn btn-secondary" onclick="copyText('csvOutput')">📋 Copy</button><button class="btn btn-secondary" onclick="downloadText('csvOutput','data.csv')">⬇ CSV</button></div>
+</div>`;
+
+case 'hash-gen': return `
+<textarea class="textarea-input" id="hashInput" placeholder="Enter text to hash..." style="min-height:90px"></textarea>
+<div class="options-row" style="margin-top:.7rem"><button class="btn btn-primary" onclick="genHashes()">🔐 Generate Hashes</button></div>
+<div id="hashResults" style="margin-top:1rem;display:none">
+  ${['SHA-256','SHA-1','SHA-512'].map(a=>`<div style="margin-bottom:.8rem"><div style="font-size:.72rem;color:var(--text3);margin-bottom:4px;font-weight:700">${a}</div><div style="display:flex;gap:8px"><input class="select-input" id="hash-${a.replace('-','')}" style="flex:1;font-family:'JetBrains Mono',monospace;font-size:.72rem" readonly /><button class="btn btn-secondary" style="padding:7px 12px" onclick="copyText('hash-${a.replace('-','')}')">📋</button></div></div>`).join('')}
+</div>`;
+
+case 'lorem': return `
+<div class="options-row">
+  <select class="select-input" id="loremType"><option value="paragraphs">Paragraphs</option><option value="sentences">Sentences</option><option value="words">Words</option></select>
+  <input class="select-input" type="number" id="loremCount" value="3" min="1" max="50" style="width:80px" />
+  <button class="btn btn-primary" onclick="genLorem()">📜 Generate</button>
+</div>
+<textarea class="textarea-input" id="loremOutput" placeholder="Lorem ipsum..." style="min-height:200px;margin-top:.7rem" readonly></textarea>
+<div class="options-row" style="margin-top:.5rem">
+  <button class="btn btn-secondary" onclick="copyText('loremOutput')">📋 Copy</button>
+  <span id="loremInfo" style="font-size:.76rem;color:var(--text3)"></span>
+</div>`;
+
+case 'base64': return `
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab(this,'b64-enc')">Encode</button>
+  <button class="tab-btn" onclick="switchTab(this,'b64-dec')">Decode</button>
+  <button class="tab-btn" onclick="switchTab(this,'b64-file')">File</button>
+</div>
+<div id="b64-enc" class="tab-content active">
+  <textarea class="textarea-input" id="b64input" placeholder="Enter text to encode..." style="min-height:110px"></textarea>
+  <div class="options-row" style="margin-top:.7rem"><button class="btn btn-primary" onclick="b64Encode()">Encode →</button></div>
+  <textarea class="textarea-input" id="b64output" style="min-height:80px;margin-top:.7rem" readonly></textarea>
+  <div class="options-row" style="margin-top:.5rem"><button class="btn btn-secondary" onclick="copyText('b64output')">📋 Copy</button></div>
+</div>
+<div id="b64-dec" class="tab-content">
+  <textarea class="textarea-input" id="b64dinput" placeholder="Enter Base64..." style="min-height:110px"></textarea>
+  <div class="options-row" style="margin-top:.7rem"><button class="btn btn-primary" onclick="b64Decode()">← Decode</button></div>
+  <textarea class="textarea-input" id="b64doutput" style="min-height:80px;margin-top:.7rem" readonly></textarea>
+  <div class="options-row" style="margin-top:.5rem"><button class="btn btn-secondary" onclick="copyText('b64doutput')">📋 Copy</button></div>
+</div>
+<div id="b64-file" class="tab-content">
+  ${dropZone('*',false,'b64filedrop')}
+  <div id="fileList" class="file-list"></div>
+  <textarea class="textarea-input" id="b64fresult" style="min-height:90px;margin-top:.7rem;font-size:.73rem;font-family:'JetBrains Mono',monospace" readonly></textarea>
+  <div class="options-row" style="margin-top:.5rem"><button class="btn btn-secondary" onclick="copyText('b64fresult')">📋 Copy</button></div>
+</div>`;
+
+case 'txt-to-pdf': return `
+<textarea class="textarea-input" id="txtContent" placeholder="Type or paste text here..." style="min-height:200px"></textarea>
+<div class="options-row" style="margin-top:.7rem">
+  <input class="select-input" id="txtTitle" placeholder="Document title" value="My Document" />
+  <button class="btn btn-primary" onclick="textToPDF()">📄 Export PDF</button>
+</div>
+${progress()}${result()}`;
+
+default: return '<p style="color:var(--text2)">Coming soon.</p>';
+  }
+}
+
+function dropZone(accept,multi,id='mainDrop') {
+  const accepts = accept==='pdf'?'.pdf':accept==='image'?'.jpg,.jpeg,.png,.webp,.bmp,.gif':accept==='txt'?'.txt':'*';
+  const label = accepts==='*'?'Any file':accepts.replace(/\./g,'').replace(/,/g,', ').toUpperCase();
+  return `<div class="drop-zone" id="${id}" onclick="document.getElementById('fi_${id}').click()" ondragover="dragOver(event,'${id}')" ondragleave="dragLeave('${id}')" ondrop="dropFiles(event,'${id}','${accept}',${multi})">
+    <span class="drop-icon">📂</span>
+    <h4>Drop files here or click to browse</h4>
+    <p>Accepts: ${label}</p>
+    <input type="file" id="fi_${id}" accept="${accepts}" ${multi?'multiple':''} onchange="handleFileInput(event,'${accept}',${multi},'${id}')" />
+  </div>`;
+}
+function progress() { return `<div class="progress-wrap" id="progress"><div class="progress-label"><span id="progressLabel">Processing...</span><span id="progressPct">0%</span></div><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div></div>`; }
+function result() { return `<div class="result-box" id="resultBox"><div class="result-info"><strong id="resultTitle">Done!</strong><span id="resultDesc"></span></div><a class="btn btn-success" id="resultLink" href="#" download>⬇️ Download</a></div>`; }
+
+// ═══════════════════════════════════════════════════════
+//  FILE HANDLING
+// ═══════════════════════════════════════════════════════
+function dragOver(e,id){e.preventDefault();document.getElementById(id)?.classList.add('drag-over');}
+function dragLeave(id){document.getElementById(id)?.classList.remove('drag-over');}
+function dropFiles(e,id,type,multi){e.preventDefault();dragLeave(id);addFiles([...e.dataTransfer.files],type,multi,id);}
+function handleFileInput(e,type,multi,id){addFiles([...e.target.files],type,multi,id);}
+function addFiles(files,type,multi,id){
+  if(id==='shareDrop'){shareFiles.push(...files);renderShareFileList();return;}
+  if(!multi) uploadedFiles=[];
+  uploadedFiles.push(...files);
+  renderFileList(); renderImgPreviews();
+  renderWhiteBgPreview(); renderFilterPreview(); renderCropPreview(); renderRemoveBgPreview();
+  if(id==='b64filedrop'&&files.length) encodeFileToBase64(files[0]);
+}
+// Also wire shareDrop file input change → shareFiles
+document.addEventListener('change', e => {
+  if(e.target && e.target.id === 'fi_shareDrop') {
+    shareFiles.push(...e.target.files);
+    renderShareFileList();
+  }
+});
+function removeFile(i){uploadedFiles.splice(i,1);renderFileList();renderImgPreviews();}
+function renderFileList(){
+  const el=document.getElementById('fileList');
+  if(!el)return;
+  el.innerHTML=uploadedFiles.map((f,i)=>`<div class="file-item"><span>${fileIcon(f.name)}</span><span class="file-item-name">${f.name}</span><span class="file-item-size">${formatBytes(f.size)}</span><span class="file-item-remove" onclick="removeFile(${i})">✕</span></div>`).join('');
+}
+function renderImgPreviews(){const el=document.getElementById('imgPreviews');if(!el||!uploadedFiles.length)return;el.classList.add('active');el.innerHTML=uploadedFiles.filter(f=>f.type.startsWith('image/')).slice(0,8).map(f=>`<div class="img-preview-item"><img src="${URL.createObjectURL(f)}" loading="lazy"/><div class="img-preview-label">${f.name.slice(0,14)}</div></div>`).join('');}
+function renderWhiteBgPreview(){if(currentTool!=='white-bg'||!uploadedFiles.length)return;const f=uploadedFiles[0];if(!f.type.startsWith('image/'))return;const row=document.getElementById('canvasRow');if(row){row.style.display='flex';document.getElementById('origImg').src=URL.createObjectURL(f);}}
+function renderFilterPreview(){if(currentTool!=='grayscale-img'||!uploadedFiles.length)return;const f=uploadedFiles[0];if(!f.type.startsWith('image/'))return;const row=document.getElementById('canvasRow');if(row){row.style.display='flex';document.getElementById('origImg').src=URL.createObjectURL(f);}}
+function renderRemoveBgPreview(){if(currentTool!=='remove-bg'||!uploadedFiles.length)return;const f=uploadedFiles[0];if(!f.type.startsWith('image/'))return;const row=document.getElementById('canvasRow');if(row){row.style.display='flex';document.getElementById('origImg').src=URL.createObjectURL(f);}}
+function renderCropPreview(){if(currentTool!=='crop-img'||!uploadedFiles.length)return;const f=uploadedFiles[0];if(!f.type.startsWith('image/'))return;const wrap=document.getElementById('cropWrap');if(!wrap)return;wrap.style.display='block';const img=new Image();img.onload=()=>{const c=document.getElementById('cropCanvas');const scale=Math.min(600/img.width,400/img.height,1);c.width=img.width*scale;c.height=img.height*scale;c.getContext('2d').drawImage(img,0,0,c.width,c.height);document.getElementById('cropW').value=Math.round(img.width);document.getElementById('cropH').value=Math.round(img.height);document.getElementById('cropX').value=0;document.getElementById('cropY').value=0;};img.src=URL.createObjectURL(f);}
+function fileIcon(n){const e=n.split('.').pop().toLowerCase();return({pdf:'📄',jpg:'🖼️',jpeg:'🖼️',png:'🖼️',webp:'🖼️',bmp:'🖼️',gif:'🎞️',txt:'📝',csv:'📋',json:'📋',html:'🌐',zip:'📦',docx:'📝',xlsx:'📊',pptx:'📊'})[e]||'📎';}
+function formatBytes(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(2)+'MB';}
+
+// ═══════════════════════════════════════════════════════
+//  PROGRESS & RESULT
+// ═══════════════════════════════════════════════════════
+function showProgress(label){const p=document.getElementById('progress');if(p){p.classList.add('active');setProgress(0,label);}}
+function setProgress(pct,label){const f=document.getElementById('progressFill'),l=document.getElementById('progressLabel'),v=document.getElementById('progressPct');if(f)f.style.width=pct+'%';if(l&&label)l.textContent=label;if(v)v.textContent=pct+'%';}
+function hideProgress(){document.getElementById('progress')?.classList.remove('active');}
+function showResult(title,desc,blob,filename){const box=document.getElementById('resultBox');if(!box)return;box.className='result-box active success';document.getElementById('resultTitle').textContent='✅ '+title;document.getElementById('resultDesc').textContent=desc;if(blob){const url=URL.createObjectURL(blob);const link=document.getElementById('resultLink');link.href=url;link.download=filename;link.style.display='';}else document.getElementById('resultLink').style.display='none';}
+function showError(msg){const box=document.getElementById('resultBox');if(!box)return;box.className='result-box active error';document.getElementById('resultTitle').textContent='❌ Error';document.getElementById('resultDesc').textContent=msg;document.getElementById('resultLink').style.display='none';}
+let toastTimeout;
+function toast(msg,type='info'){const el=document.getElementById('toast');el.textContent=(type==='success'?'✅ ':type==='error'?'❌ ':'ℹ️ ')+msg;el.className='show '+type;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove('show'),3000);}
+
+// ═══════════════════════════════════════════════════════
+//  DOCUMENT EDITOR
+// ═══════════════════════════════════════════════════════
+function ef(cmd,val){document.execCommand(cmd,false,val||null);document.getElementById('docEditor')?.focus();}
+function insertTable(){const rows=parseInt(prompt('Rows?','3')||3),cols=parseInt(prompt('Cols?','3')||3);let html='<table style="border-collapse:collapse;width:100%;margin:1rem 0">';for(let r=0;r<rows;r++){html+='<tr>';for(let c=0;c<cols;c++)html+=`<td style="border:1px solid #ccc;padding:6px 10px;min-width:60px">${r===0?'<strong>Header</strong>':' '}</td>`;html+='</tr>';}html+='</table>';document.execCommand('insertHTML',false,html);}
+function insertHR(){document.execCommand('insertHTML',false,'<hr style="border:none;border-top:2px solid #e4e7f5;margin:1rem 0"/>');}
+function updateEditorStats(){const el=document.getElementById('docEditor');if(!el)return;const text=el.innerText||'';const words=text.trim()?text.trim().split(/\s+/).length:0;document.getElementById('editorStats').textContent=`${words} words · ${text.length} chars`;}
+function exportDocTxt(){const el=document.getElementById('docEditor');if(!el)return;const blob=new Blob([el.innerText],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='document.txt';a.click();}
+function exportDocHTML(){const el=document.getElementById('docEditor');if(!el)return;const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;color:#1a1d3a}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:6px 10px}</style></head><body>${el.innerHTML}</body></html>`;const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='document.html';a.click();}
+async function exportDocPDF(){const el=document.getElementById('docEditor');if(!el)return;const {PDFDocument,StandardFonts,rgb}=PDFLib;const doc=await PDFDocument.create();const font=await doc.embedFont(StandardFonts.TimesRoman);const bfont=await doc.embedFont(StandardFonts.TimesRomanBold);const text=el.innerText;const lines=[];text.split('\n').forEach(para=>{const words=para.split(' ');let line='';words.forEach(word=>{const test=line?line+' '+word:word;if(font.widthOfTextAtSize(test,12)>475){lines.push(line);line=word;}else line=test;});lines.push(line);lines.push('');});let page=doc.addPage([595,842]);let y=842-60;for(const line of lines){if(y<60){page=doc.addPage([595,842]);y=842-60;}if(line)page.drawText(line,{x:60,y,size:12,font,color:rgb(0,0,0)});y-=18;}const bytes=await doc.save();const blob=new Blob([bytes],{type:'application/pdf'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='document.pdf';a.click();}
+
+// ═══════════════════════════════════════════════════════
+//  SPREADSHEET EDITOR
+// ═══════════════════════════════════════════════════════
+let sheetData=[],sheetRows=10,sheetCols=6;
+function initSheet(){sheetData=Array.from({length:sheetRows},(_,r)=>Array.from({length:sheetCols},(_,c)=>r===0?['A','B','C','D','E','F'][c]:''));renderSheet();}
+function renderSheet(){const t=document.getElementById('sheetTable');if(!t)return;let html='<thead><tr><th style="width:32px;background:var(--bg4);border:1px solid var(--border2);padding:4px 6px;font-size:.7rem;color:var(--text3)">#</th>';for(let c=0;c<sheetCols;c++)html+=`<th style="background:var(--bg4);border:1px solid var(--border2);padding:4px 10px;font-size:.72rem;color:var(--text2);min-width:90px">${String.fromCharCode(65+c)}</th>`;html+='</tr></thead><tbody>';for(let r=0;r<sheetRows;r++){html+=`<tr><td style="background:var(--bg4);border:1px solid var(--border2);padding:4px 6px;font-size:.7rem;color:var(--text3);text-align:center">${r+1}</td>`;for(let c=0;c<sheetCols;c++)html+=`<td style="border:1px solid var(--border);padding:0"><input style="width:100%;padding:5px 8px;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;color:var(--text);outline:none;min-width:90px" value="${escHtml(sheetData[r]?.[c]||'')}" onchange="sheetData[${r}][${c}]=this.value" onkeydown="sheetNav(event,${r},${c})" /></td>`;html+='</tr>';}html+='</tbody>';t.innerHTML=html;}
+function sheetNav(e,r,c){if(e.key==='Tab'){e.preventDefault();const nc=c+1<sheetCols?c+1:0,nr=c+1<sheetCols?r:r+1<sheetRows?r+1:0;document.getElementById('sheetTable').rows[nr+1]?.cells[nc+1]?.querySelector('input')?.focus();}else if(e.key==='Enter'){e.preventDefault();document.getElementById('sheetTable').rows[Math.min(r+2,sheetRows)]?.cells[c+1]?.querySelector('input')?.focus();}}
+function addSheetRow(){sheetRows++;sheetData.push(Array(sheetCols).fill(''));renderSheet();}
+function addSheetCol(){sheetCols++;sheetData.forEach(r=>r.push(''));renderSheet();}
+function clearSheet(){sheetData=Array.from({length:sheetRows},()=>Array(sheetCols).fill(''));renderSheet();}
+function importCSV(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const lines=ev.target.result.trim().split('\n');sheetRows=lines.length;sheetData=lines.map(l=>l.split(',').map(v=>v.replace(/^"|"$/g,'').trim()));sheetCols=Math.max(...sheetData.map(r=>r.length));sheetData.forEach(r=>{while(r.length<sheetCols)r.push('');});renderSheet();};r.readAsText(f);}
+function exportSheetCSV(){const csv=sheetData.map(r=>r.map(c=>c.includes(',')?`"${c}"`:c).join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spreadsheet.csv';a.click();}
+async function exportSheetPDF(){const {PDFDocument,StandardFonts,rgb}=PDFLib;const doc=await PDFDocument.create();const page=doc.addPage([842,595]);const font=await doc.embedFont(StandardFonts.Helvetica);const cw=120,rh=20,sx=40,sy=555;const rows=Math.min(sheetData.length,25),cols=Math.min(sheetCols,6);for(let r=0;r<rows;r++){for(let c=0;c<cols;c++){const x=sx+c*cw,y=sy-r*rh;page.drawRectangle({x,y:y-rh,width:cw,height:rh,borderColor:rgb(.8,.8,.85),borderWidth:.5,color:r===0?rgb(.9,.92,1):rgb(1,1,1)});const val=String(sheetData[r]?.[c]||'').slice(0,18);if(val)page.drawText(val,{x:x+4,y:y-13,size:9,font,color:rgb(.1,.11,.23)});}}const bytes=await doc.save();const blob=new Blob([bytes],{type:'application/pdf'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spreadsheet.pdf';a.click();}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ═══════════════════════════════════════════════════════
+//  PDF VIEWER
+// ═══════════════════════════════════════════════════════
+let pdfDoc=null,pdfPage=1,pdfNotes=[];
+async function initPDFViewer(){if(!uploadedFiles.length)return;try{const ab=await uploadedFiles[0].arrayBuffer();if(typeof pdfjsLib==='undefined'){document.getElementById('pdfViewerArea').style.display='block';document.getElementById('pdfPageInfo').textContent='PDF.js not loaded — showing info only';return;}const loadingTask=pdfjsLib.getDocument({data:ab});pdfDoc=await loadingTask.promise;document.getElementById('pdfViewerArea').style.display='block';renderPDFPage(1);}catch(e){toast('Could not load PDF: '+e.message,'error');}}
+function renderPDFPage(n){if(!pdfDoc)return;pdfDoc.getPage(n).then(page=>{const vp=page.getViewport({scale:1.3});const c=document.getElementById('pdfCanvas');c.width=vp.width;c.height=vp.height;page.render({canvasContext:c.getContext('2d'),viewport:vp});document.getElementById('pdfPageInfo').textContent=`Page ${n} / ${pdfDoc.numPages}`;});}
+function pdfPrevPage(){if(pdfPage>1){pdfPage--;renderPDFPage(pdfPage);}}
+function pdfNextPage(){if(pdfDoc&&pdfPage<pdfDoc.numPages){pdfPage++;renderPDFPage(pdfPage);}}
+function addPdfNote(){const v=document.getElementById('noteInput').value.trim();if(!v)return;pdfNotes.push({page:pdfPage,text:v});document.getElementById('noteInput').value='';renderNotes();}
+function renderNotes(){const el=document.getElementById('notesList');if(!el)return;el.innerHTML=pdfNotes.map((n,i)=>`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:.5rem .8rem;margin-bottom:5px;font-size:.82rem;display:flex;align-items:center;gap:8px"><span style="font-size:.7rem;color:var(--amber);font-weight:700">P${n.page}</span><span style="flex:1;color:var(--text)">${n.text}</span><span style="cursor:pointer;color:var(--text3)" onclick="pdfNotes.splice(${i},1);renderNotes()">✕</span></div>`).join('');}
+
+// ═══════════════════════════════════════════════════════
+//  PDF TOOLS
+// ═══════════════════════════════════════════════════════
+async function mergePDFs(){if(uploadedFiles.length<2)return toast('Add at least 2 PDFs','error');showProgress('Merging...');try{const{PDFDocument}=PDFLib;const merged=await PDFDocument.create();for(let i=0;i<uploadedFiles.length;i++){setProgress(Math.round(i/uploadedFiles.length*90),`Merging ${i+1}/${uploadedFiles.length}...`);const ab=await uploadedFiles[i].arrayBuffer();const doc=await PDFDocument.load(ab);const pages=await merged.copyPages(doc,doc.getPageIndices());pages.forEach(p=>merged.addPage(p));}setProgress(95,'Saving...');const bytes=await merged.save();const blob=new Blob([bytes],{type:'application/pdf'});setProgress(100);hideProgress();showResult('Merged!',`${uploadedFiles.length} files → ${formatBytes(blob.size)}`,blob,'merged.pdf');}catch(e){hideProgress();showError(e.message);}}
+async function splitPDF(){if(!uploadedFiles.length)return toast('Add a PDF','error');showProgress('Splitting...');try{const{PDFDocument}=PDFLib;const ab=await uploadedFiles[0].arrayBuffer();const src=await PDFDocument.load(ab);const total=src.getPageCount();const rangeStr=document.getElementById('pageRange').value.trim();const pages=rangeStr?parsePageRange(rangeStr,total):[...Array(total)].map((_,i)=>i);const out=await PDFDocument.create();const copied=await out.copyPages(src,pages);copied.forEach(p=>out.addPage(p));const bytes=await out.save();const blob=new Blob([bytes],{type:'application/pdf'});setProgress(100);hideProgress();showResult('Split!',`Extracted ${pages.length} page(s)`,blob,'split.pdf');}catch(e){hideProgress();showError(e.message);}}
+async function compressPDF(){if(!uploadedFiles.length)return toast('Add a PDF','error');showProgress('Compressing...');try{const{PDFDocument}=PDFLib;const ab=await uploadedFiles[0].arrayBuffer();setProgress(40,'Loading...');const doc=await PDFDocument.load(ab,{updateMetadata:false});doc.setTitle('');doc.setAuthor('');doc.setSubject('');doc.setKeywords([]);setProgress(80,'Saving...');const bytes=await doc.save({useObjectStreams:true,addDefaultPage:false,objectsPerTick:50});const blob=new Blob([bytes],{type:'application/pdf'});const savings=Math.max(0,100-Math.round(blob.size/uploadedFiles[0].size*100));setProgress(100);hideProgress();showResult('Compressed!',`${formatBytes(uploadedFiles[0].size)} → ${formatBytes(blob.size)} (${savings}% smaller)`,blob,'compressed.pdf');}catch(e){hideProgress();showError(e.message);}}
+async function rotatePDF(){if(!uploadedFiles.length)return toast('Add a PDF','error');const deg=parseInt(document.getElementById('rotateDeg').value);showProgress('Rotating...');try{const{PDFDocument,degrees}=PDFLib;const ab=await uploadedFiles[0].arrayBuffer();const doc=await PDFDocument.load(ab);doc.getPages().forEach(p=>p.setRotation(degrees((p.getRotation().angle+deg)%360)));const bytes=await doc.save();const blob=new Blob([bytes],{type:'application/pdf'});setProgress(100);hideProgress();showResult('Rotated!',`All pages rotated ${deg}°`,blob,'rotated.pdf');}catch(e){hideProgress();showError(e.message);}}
+async function watermarkPDF(){if(!uploadedFiles.length)return toast('Add a PDF','error');const text=document.getElementById('wmText').value||'WATERMARK';const opacity=parseInt(document.getElementById('wmOpacity').value)/100;const size=parseInt(document.getElementById('wmSize').value);showProgress('Watermarking...');try{const{PDFDocument,rgb,degrees}=PDFLib;const ab=await uploadedFiles[0].arrayBuffer();const doc=await PDFDocument.load(ab);for(const page of doc.getPages()){const{width,height}=page.getSize();page.drawText(text,{x:width/2-(text.length*size*.3),y:height/2,size,rotate:degrees(45),color:rgb(.5,.5,.5),opacity});}const bytes=await doc.save();const blob=new Blob([bytes],{type:'application/pdf'});setProgress(100);hideProgress();showResult('Watermarked!',`"${text}" added`,blob,'watermarked.pdf');}catch(e){hideProgress();showError(e.message);}}
+async function imagesToPDF(){const imgs=uploadedFiles.filter(f=>f.type.startsWith('image/'));if(!imgs.length)return toast('Add images','error');showProgress('Creating PDF...');try{const{PDFDocument}=PDFLib;const doc=await PDFDocument.create();for(let i=0;i<imgs.length;i++){setProgress(Math.round(i/imgs.length*90),`Adding image ${i+1}/${imgs.length}...`);const imgEl=await loadImage(URL.createObjectURL(imgs[i]));const c=document.createElement('canvas');c.width=imgEl.width;c.height=imgEl.height;c.getContext('2d').drawImage(imgEl,0,0);const jpgBytes=await(await fetch(c.toDataURL('image/jpeg',.92))).arrayBuffer();const img=await doc.embedJpg(jpgBytes);const page=doc.addPage([img.width,img.height]);page.drawImage(img,{x:0,y:0,width:img.width,height:img.height});}const bytes=await doc.save();const blob=new Blob([bytes],{type:'application/pdf'});setProgress(100);hideProgress();showResult('Done!',`${imgs.length} images → PDF`,blob,'images.pdf');}catch(e){hideProgress();showError(e.message);}}
+async function textToPDF(){const text=document.getElementById('txtContent')?.value||'';if(!text.trim())return toast('Enter text first','error');showProgress('Generating...');try{const{PDFDocument,StandardFonts,rgb}=PDFLib;const doc=await PDFDocument.create();const font=await doc.embedFont(StandardFonts.TimesRoman);const lines=[];text.split('\n').forEach(para=>{const words=para.split(' ');let line='';words.forEach(word=>{const test=line?line+' '+word:word;if(font.widthOfTextAtSize(test,12)>475){lines.push(line);line=word;}else line=test;});lines.push(line);lines.push('');});let page=doc.addPage([595,842]);let y=842-60;for(const line of lines){if(y<60){page=doc.addPage([595,842]);y=842-60;}if(line)page.drawText(line,{x:60,y,size:12,font,color:rgb(0,0,0)});y-=18;}const bytes=await doc.save();const blob=new Blob([bytes],{type:'application/pdf'});setProgress(100);hideProgress();showResult('PDF Ready!',`${lines.length} lines`,blob,'document.pdf');}catch(e){hideProgress();showError(e.message);}}
+
+// ═══════════════════════════════════════════════════════
+//  IMAGE TOOLS
+// ═══════════════════════════════════════════════════════
+function loadImage(src){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=rej;img.crossOrigin='anonymous';img.src=src;});}
+async function imgToFormat(file,fmt,quality){const img=await loadImage(URL.createObjectURL(file));const c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);return c.toDataURL(fmt,quality);}
+async function convertImages(){const imgs=uploadedFiles.filter(f=>f.type.startsWith('image/'));if(!imgs.length)return toast('Add images','error');const fmt=document.getElementById('convertFormat').value;const quality=parseInt(document.getElementById('imgQuality').value)/100;const ext=fmt.split('/')[1];showProgress('Converting...');if(imgs.length===1){const url=await imgToFormat(imgs[0],fmt,quality);const blob=await(await fetch(url)).blob();setProgress(100);hideProgress();showResult('Converted!',`→ .${ext} (${formatBytes(blob.size)})`,blob,imgs[0].name.split('.')[0]+'.'+ext);}else{const zip=new JSZip();for(let i=0;i<imgs.length;i++){setProgress(Math.round(i/imgs.length*90));const url=await imgToFormat(imgs[i],fmt,quality);const ab=await(await fetch(url)).arrayBuffer();zip.file(imgs[i].name.split('.')[0]+'.'+ext,ab);}const blob=await zip.generateAsync({type:'blob'});setProgress(100);hideProgress();showResult('Done!',`${imgs.length} files converted`,blob,'converted.zip');}}
+async function compressImages(){const imgs=uploadedFiles.filter(f=>f.type.startsWith('image/'));if(!imgs.length)return toast('Add images','error');const quality=parseInt(document.getElementById('cqSlider').value)/100;showProgress('Compressing...');if(imgs.length===1){const url=await imgToFormat(imgs[0],'image/jpeg',quality);const blob=await(await fetch(url)).blob();const savings=Math.max(0,100-Math.round(blob.size/imgs[0].size*100));setProgress(100);hideProgress();showResult('Compressed!',`${formatBytes(imgs[0].size)} → ${formatBytes(blob.size)} (${savings}% saved)`,blob,'compressed.jpg');}else{const zip=new JSZip();for(let i=0;i<imgs.length;i++){setProgress(Math.round(i/imgs.length*90));const url=await imgToFormat(imgs[i],'image/jpeg',quality);const ab=await(await fetch(url)).arrayBuffer();zip.file('compressed_'+imgs[i].name.split('.')[0]+'.jpg',ab);}const blob=await zip.generateAsync({type:'blob'});setProgress(100);hideProgress();showResult('Done!',`${imgs.length} compressed`,blob,'compressed.zip');}}
+function applyPreset(v){if(v)document.getElementById('cqSlider').value=v;document.getElementById('cqv').textContent=(v||document.getElementById('cqSlider').value)+'%';}
+async function resizeImage(){if(!uploadedFiles.length)return toast('Add an image','error');const f=uploadedFiles[0];const img=await loadImage(URL.createObjectURL(f));const isPx=document.querySelector('#toolPanel .tab-btn.active')?.textContent.includes('Pixel');let w,h;if(isPx){w=parseInt(document.getElementById('resW').value)||img.width;h=parseInt(document.getElementById('resH').value)||img.height;if(document.getElementById('aspectLock')?.checked&&document.getElementById('resW').value)h=Math.round(w/img.width*img.height);}else{const scale=parseInt(document.getElementById('scaleSlider').value)/100;w=Math.round(img.width*scale);h=Math.round(img.height*scale);}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const url=c.toDataURL('image/png');const blob=await(await fetch(url)).blob();showResult('Resized!',`${img.width}×${img.height} → ${w}×${h}`,blob,'resized.png');}
+async function addWhiteBg(){if(!uploadedFiles.length)return toast('Add an image','error');const f=uploadedFiles[0];const img=await loadImage(URL.createObjectURL(f));const c=document.getElementById('whiteBgCanvas');const bgColor=document.getElementById('bgColor').value;c.width=img.width;c.height=img.height;const ctx=c.getContext('2d');ctx.fillStyle=bgColor;ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0);const fmt=document.getElementById('whiteBgFormat').value;const ext=fmt==='image/jpeg'?'jpg':'png';const url=c.toDataURL(fmt,.95);const blob=await(await fetch(url)).blob();showResult('Done!',`Background applied — ${formatBytes(blob.size)}`,blob,'with_bg.'+ext);}
+async function previewRemoveBg(){if(!uploadedFiles.length)return toast('Add an image','error');const f=uploadedFiles[0];const img=await loadImage(URL.createObjectURL(f));const c=document.getElementById('removeBgCanvas');const threshold=parseInt(document.getElementById('bgThreshold').value);c.width=img.width;c.height=img.height;const ctx=c.getContext('2d');ctx.drawImage(img,0,0);const data=ctx.getImageData(0,0,c.width,c.height);const d=data.data;const bgR=d[0],bgG=d[1],bgB=d[2];for(let i=0;i<d.length;i+=4){const dist=Math.sqrt((d[i]-bgR)**2+(d[i+1]-bgG)**2+(d[i+2]-bgB)**2);if(dist<threshold*2.55)d[i+3]=0;}ctx.putImageData(data,0,0);document.getElementById('canvasRow').style.display='flex';}
+async function downloadRemoveBg(){await previewRemoveBg();const c=document.getElementById('removeBgCanvas');const url=c.toDataURL('image/png');const blob=await(await fetch(url)).blob();showResult('BG Removed!',`PNG transparent — ${formatBytes(blob.size)}`,blob,'no_bg.png');}
+async function cropImage(){if(!uploadedFiles.length)return toast('Add an image','error');const x=parseInt(document.getElementById('cropX').value)||0,y=parseInt(document.getElementById('cropY').value)||0,w=parseInt(document.getElementById('cropW').value),h=parseInt(document.getElementById('cropH').value);if(!w||!h)return toast('Enter W and H','error');const img=await loadImage(URL.createObjectURL(uploadedFiles[0]));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,x,y,w,h,0,0,w,h);const blob=await(await fetch(c.toDataURL('image/png'))).blob();showResult('Cropped!',`${w}×${h}px`,blob,'cropped.png');}
+async function previewFilter(){if(!uploadedFiles.length)return toast('Add an image','error');const img=await loadImage(URL.createObjectURL(uploadedFiles[0]));const c=document.getElementById('filterCanvas');const filterType=document.getElementById('filterType').value;const intensity=parseInt(document.getElementById('filterIntensity').value)/100;c.width=img.width;c.height=img.height;const ctx=c.getContext('2d');ctx.filter=({grayscale:`grayscale(${intensity})`,sepia:`sepia(${intensity})`,invert:`invert(${intensity})`,brightness:`brightness(${1+intensity})`,contrast:`contrast(${1+intensity*2})`,blur:`blur(${intensity*5}px)`})[filterType]||'none';ctx.drawImage(img,0,0);document.getElementById('canvasRow').style.display='flex';}
+async function applyFilter(){await previewFilter();const c=document.getElementById('filterCanvas');const url=c.toDataURL('image/png');const blob=await(await fetch(url)).blob();showResult('Filter Applied!',`${formatBytes(blob.size)}`,blob,`filtered.png`);}
+async function previewCollage(){const imgs=uploadedFiles.filter(f=>f.type.startsWith('image/'));if(!imgs.length)return toast('Add images','error');const layout=document.getElementById('collageLayout').value;const gap=parseInt(document.getElementById('collageGap').value);const bg=document.getElementById('collageBg').value;const[cols,rows]=layout.split('x').map(Number);const cw=300,ch=250;const c=document.getElementById('collageCanvas');c.width=cols*cw+(cols-1)*gap;c.height=rows*ch+(rows-1)*gap;const ctx=c.getContext('2d');ctx.fillStyle=bg;ctx.fillRect(0,0,c.width,c.height);const imgEls=await Promise.all(imgs.slice(0,cols*rows).map(f=>loadImage(URL.createObjectURL(f))));let idx=0;for(let r=0;r<rows;r++)for(let col=0;col<cols;col++){if(idx>=imgEls.length)break;ctx.drawImage(imgEls[idx++],col*(cw+gap),r*(ch+gap),cw,ch);}document.getElementById('collagePreviewWrap').style.display='block';}
+async function downloadCollage(){await previewCollage();const c=document.getElementById('collageCanvas');const url=c.toDataURL('image/jpeg',.92);const blob=await(await fetch(url)).blob();showResult('Collage Ready!',formatBytes(blob.size),blob,'collage.jpg');}
+
+// ═══════════════════════════════════════════════════════
+//  ⚙️  LOCALSHARE CONFIG — set your Render URL here
+// ═══════════════════════════════════════════════════════
+const LS_CONFIG = {
+  // 🔒 Replace with your actual Render deployment URL
+  // e.g. "https://localshare-qbmm.onrender.com"
+  BASE_URL: "https://localshare-qbmm.onrender.com",
+  // Direct link shown in footer / "Open LocalShare" button
+  SITE_URL: "https://localshare-qbmm.onrender.com",
+  // Max file size per upload (100MB — matches your server.js)
+  MAX_SIZE_MB: 100
+};
+
+// ═══════════════════════════════════════════════════════
+//  LOCALSHARE — Real API Integration
+//  Connects to YOUR Render-hosted LocalShare backend
+//  API routes mirrored from your server.js:
+//    POST /upload         → upload files, get code
+//    GET  /api/access/:code → fetch file list
+//    GET  /download/:code/:idx → proxied download
+// ═══════════════════════════════════════════════════════
+let shareFiles = [];
+
+function renderShareFileList() {
+  const el = document.getElementById('shareFileList');
+  if (!el) return;
+  if (!shareFiles.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="share-files-list">' +
+    shareFiles.map((f, i) => `
+      <div class="share-file-item">
+        <span>${fileIcon(f.name)}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+        <span style="font-size:.72rem;color:var(--text3);flex-shrink:0">${formatBytes(f.size)}</span>
+        <span style="cursor:pointer;color:var(--text3);flex-shrink:0" onclick="shareFiles.splice(${i},1);renderShareFileList()">✕</span>
+      </div>`).join('') + '</div>';
+}
+
+async function createShareSession() {
+  if (!shareFiles.length) return toast('Add files to share first', 'error');
+
+  // Validate sizes
+  for (const f of shareFiles) {
+    if (f.size > LS_CONFIG.MAX_SIZE_MB * 1024 * 1024) {
+      return toast(`"${f.name}" exceeds ${LS_CONFIG.MAX_SIZE_MB}MB limit`, 'error');
+    }
+  }
+
+  const btn = document.getElementById('shareUploadBtn');
+  const prog = document.getElementById('shareProgress');
+  const progFill = document.getElementById('shareProgFill');
+  const progLabel = document.getElementById('shareProgLabel');
+
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+  if (prog) { prog.style.display = 'block'; progFill.style.width = '0%'; progLabel.textContent = 'Connecting to LocalShare…'; }
+
+  // Fake progress animation
+  let fakeP = 0;
+  const fakeInterval = setInterval(() => {
+    fakeP = Math.min(fakeP + Math.random() * 7, 88);
+    if (progFill) progFill.style.width = fakeP + '%';
+    if (progLabel) progLabel.textContent = `Uploading… ${Math.round(fakeP)}%`;
+  }, 350);
+
+  try {
+    const formData = new FormData();
+    shareFiles.forEach(f => formData.append('files', f));
+    const dur = document.getElementById('shareDuration')?.value || '24h';
+    formData.append('duration', dur);
+
+    const res = await fetch(LS_CONFIG.BASE_URL + '/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    clearInterval(fakeInterval);
+
+    if (!res.ok) {
+      let errMsg = `Server error (${res.status})`;
+      try { const d = await res.json(); errMsg = d.error || errMsg; } catch {}
+      throw new Error(errMsg);
+    }
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    if (progFill) progFill.style.width = '100%';
+    if (progLabel) progLabel.textContent = '✅ Upload complete!';
+
+    setTimeout(() => {
+      if (prog) prog.style.display = 'none';
+
+      // Show result area
+      const codeArea = document.getElementById('shareCodeArea');
+      if (codeArea) codeArea.style.display = 'block';
+
+      document.getElementById('shareCode').textContent = data.code;
+      document.getElementById('shareFullLink').textContent = data.url;
+      document.getElementById('shareFullLink').href = data.url;
+
+      // Generate QR pointing to the real LocalShare access URL
+      const qrEl = document.getElementById('shareQR');
+      qrEl.innerHTML = '';
+      try {
+        new QRCode(qrEl, {
+          text: data.url,
+          width: 140, height: 140,
+          colorDark: '#1a1d3a', colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      } catch (e) {}
+
+      toast(`✅ Share link created! Code: ${data.code}`, 'success');
+    }, 600);
+
+  } catch (err) {
+    clearInterval(fakeInterval);
+    if (prog) prog.style.display = 'none';
+    toast('❌ ' + (err.message || 'Upload failed. Check your connection.'), 'error');
+    console.error('LocalShare upload error:', err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Upload & Share';
+  }
+}
+
+async function receiveFiles() {
+  const raw = (document.getElementById('receiveCode')?.value || '').trim();
+  const el = document.getElementById('receiveFileList');
+  if (!raw) return toast('Enter a code or link', 'error');
+
+  // Extract 6-digit code from raw input (code or full URL)
+  let code;
+  const urlMatch = raw.match(/\/access\/(\d{6})/);
+  if (urlMatch) code = urlMatch[1];
+  else if (/^\d{6}$/.test(raw)) code = raw;
+  else { el.innerHTML = '<p style="font-size:.8rem;color:var(--red);padding:.5rem">Enter the full share link or a 6-digit code.</p>'; return; }
+
+  el.innerHTML = '<p style="font-size:.8rem;color:var(--text2);padding:.5rem;text-align:center">🔍 Fetching files from LocalShare…</p>';
+
+  try {
+    const res = await fetch(`${LS_CONFIG.BASE_URL}/api/access/${code}`);
+    const data = await res.json();
+
+    if (data.error) {
+      el.innerHTML = `<p style="font-size:.8rem;color:var(--red);padding:.5rem">❌ ${data.error}</p>`;
+      return;
+    }
+
+    const expiry = data.expiresAt ? new Date(data.expiresAt).toLocaleString() : 'Unknown';
+    el.innerHTML = `<p style="font-size:.74rem;color:var(--green);font-weight:700;margin-bottom:.5rem">✅ Found ${data.files.length} file(s) · Expires: ${expiry}</p>` +
+      data.files.map(f => `
+        <div class="share-file-item">
+          <span>${fileIcon(f.name)}</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}${f.size?` <span style="color:var(--text3);font-size:.7rem">(${formatBytes(f.size)})</span>`:''}
+          </span>
+          <a href="${LS_CONFIG.BASE_URL}${f.url}" download="${f.name}" target="_blank"
+             style="font-size:.78rem;color:var(--blue);font-weight:700;text-decoration:none;padding:3px 8px;background:var(--blue3);border-radius:5px;flex-shrink:0">
+            ⬇ DL
+          </a>
+        </div>`).join('');
+
+    if (data.files.length > 1) {
+      el.innerHTML += `<button class="btn btn-primary" style="width:100%;margin-top:.6rem;font-size:.82rem" onclick="downloadAllShared(${JSON.stringify(data.files).replace(/"/g,'&quot;')})">⬇ Download All</button>`;
+    }
+
+    toast(`Found ${data.files.length} file(s) — click to download`, 'success');
+  } catch (err) {
+    el.innerHTML = '<p style="font-size:.8rem;color:var(--red);padding:.5rem">❌ Could not reach LocalShare server. It may be sleeping (Render free tier). Try again in 30s.</p>';
+    console.error('LocalShare receive error:', err);
+  }
+}
+
+function downloadAllShared(files) {
+  files.forEach((f, i) => {
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href = LS_CONFIG.BASE_URL + f.url;
+      a.download = f.name;
+      a.target = '_blank';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }, i * 600);
+  });
+}
+
+function copyShareLink() {
+  const text = document.getElementById('shareFullLink')?.textContent?.trim();
+  if (!text) return toast('Generate a link first', 'error');
+  navigator.clipboard.writeText(text).then(() => toast('Link copied!', 'success'));
+}
+
+// ═══════════════════════════════════════════════════════
+//  UTILITY TOOLS
+// ═══════════════════════════════════════════════════════
+function analyzeText(){const text=document.getElementById('wcText').value;const words=text.trim()?text.trim().split(/\s+/).length:0;document.getElementById('wc-words').textContent=words.toLocaleString();document.getElementById('wc-characters').textContent=text.length.toLocaleString();document.getElementById('wc-sentences').textContent=(text.match(/[.!?]+/g)||[]).length;document.getElementById('wc-paragraphs').textContent=text.trim()?text.split(/\n{2,}/).filter(p=>p.trim()).length||1:0;document.getElementById('wc-reading').textContent=Math.ceil(words/200)+' min';document.getElementById('wc-unique').textContent=new Set((text.toLowerCase().match(/\b\w+\b/g)||[])).size;}
+function b64Encode(){try{document.getElementById('b64output').value=btoa(unescape(encodeURIComponent(document.getElementById('b64input').value)));}catch(e){document.getElementById('b64output').value='Error: '+e.message;}}
+function b64Decode(){try{document.getElementById('b64doutput').value=decodeURIComponent(escape(atob(document.getElementById('b64dinput').value.trim())));}catch(e){document.getElementById('b64doutput').value='Error: Invalid Base64';}}
+function encodeFileToBase64(f){const r=new FileReader();r.onload=e=>{const b64=btoa(String.fromCharCode(...new Uint8Array(e.target.result)));document.getElementById('b64fresult').value=b64;toast('File encoded!','success');};r.readAsArrayBuffer(f);}
+let qrInstance=null;
+function genQR(){const text=document.getElementById('qrInput').value;if(!text.trim())return toast('Enter text','error');const size=parseInt(document.getElementById('qrSize').value);const dark=document.getElementById('qrDark').value;const light=document.getElementById('qrLight').value;const out=document.getElementById('qrOutput');out.innerHTML='';try{qrInstance=new QRCode(out,{text,width:size,height:size,colorDark:dark,colorLight:light,correctLevel:QRCode.CorrectLevel.H});toast('QR generated!','success');}catch(e){toast('Error: '+e.message,'error');}}
+function downloadQR(){const canvas=document.getElementById('qrOutput')?.querySelector('canvas');if(!canvas)return genQR();const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='qrcode.png';a.click();}
+function csv2json(){const csv=document.getElementById('csvInput').value.replace(/\\n/g,'\n');const lines=csv.trim().split('\n');const headers=lines[0].split(',').map(h=>h.trim());const data=lines.slice(1).map(row=>{const vals=row.split(',');return Object.fromEntries(headers.map((h,i)=>[h,vals[i]?.trim()||'']));});document.getElementById('jsonOutput').value=JSON.stringify(data,null,2);}
+function json2csv(){try{const data=JSON.parse(document.getElementById('jsonInput').value);if(!Array.isArray(data)||!data.length)throw new Error('Expected array');const headers=Object.keys(data[0]);document.getElementById('csvOutput').value=[headers.join(','),...data.map(r=>headers.map(h=>JSON.stringify(r[h]??'')).join(','))].join('\n');}catch(e){document.getElementById('csvOutput').value='Error: '+e.message;}}
+async function genHashes(){const text=document.getElementById('hashInput').value;if(!text.trim())return toast('Enter text','error');const enc=new TextEncoder();const data=enc.encode(text);document.getElementById('hashResults').style.display='block';for(const[alg,id]of[['SHA-256','hash-SHA256'],['SHA-1','hash-SHA1'],['SHA-512','hash-SHA512']]){try{const buf=await crypto.subtle.digest(alg,data);document.getElementById(id).value=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}catch(e){document.getElementById(id).value='Not supported';}}toast('Hashes generated!','success');}
+const LOREM='lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure dolor reprehenderit voluptate velit esse cillum dolore fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa officia deserunt mollit anim id est laborum'.split(' ');
+function genLorem(){const type=document.getElementById('loremType').value;const count=parseInt(document.getElementById('loremCount').value)||3;const rw=()=>LOREM[Math.floor(Math.random()*LOREM.length)];let out='';if(type==='words'){out=[...Array(count)].map((_,i)=>i===0?'Lorem':rw()).join(' ');}else if(type==='sentences'){out=[...Array(count)].map((_,i)=>{const words=[...Array(8+Math.floor(Math.random()*8))].map((_,j)=>i===0&&j===0?'Lorem':rw());return words.join(' ')+'.';}).join(' ');}else{out=[...Array(count)].map((_,i)=>{const sents=[...Array(3+Math.floor(Math.random()*3))].map((_,j)=>{const words=[...Array(8+Math.floor(Math.random()*10))].map((_,k)=>i===0&&j===0&&k===0?'Lorem':rw());return words.join(' ')+'.';});return sents.join(' ');}).join('\n\n');}document.getElementById('loremOutput').value=out;document.getElementById('loremInfo').textContent=out.split(/\s+/).length+' words';}
+function parsePageRange(str,total){const pages=new Set();str.split(',').forEach(part=>{part=part.trim();if(part.includes('-')){const[a,b]=part.split('-').map(Number);for(let i=a;i<=b&&i<=total;i++)pages.add(i-1);}else{const n=parseInt(part);if(n>=1&&n<=total)pages.add(n-1);}});return[...pages].sort((a,b)=>a-b);}
+function switchTab(btn,id){btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('active'));document.getElementById(id)?.classList.add('active');}
+function copyText(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.value||el.textContent).then(()=>toast('Copied!','success'));}
+function downloadText(id,filename){const el=document.getElementById(id);if(!el)return;const blob=new Blob([el.value],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();}
+
+// ═══════════════════════════════════════════════════════
+//  INIT PANEL
+// ═══════════════════════════════════════════════════════
+function initPanel(id){
+  if(id==='sheet-editor'){initSheet();}
+  if(id==='pdf-viewer'){uploadedFiles=[];setTimeout(()=>{const dz=document.getElementById('mainDrop');if(dz)dz.addEventListener('click',()=>document.getElementById('fi_mainDrop')?.click());},200);}
+}
+
+// Wire shareDrop file input
+document.addEventListener('change', e => {
+  if(e.target && e.target.id === 'fi_shareDrop') {
+    shareFiles.push(...e.target.files);
+    renderShareFileList();
+  }
+});
+</script>
+</body>
+</html>
